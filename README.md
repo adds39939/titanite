@@ -11,7 +11,10 @@
 
 <p align="center">Easy launch argument configuration for your Linux Steam games.</p>
 
-![Titanite showing a Steam library](docs/screenshot.png)
+<p align="center">
+  <img src="docs/screenshot.png" alt="Titanite showing a Steam library" width="49%">
+  <img src="docs/screenshot-settings.png" alt="Titanite showing a game's launch settings" width="49%">
+</p>
 
 Configure launch arguments for Proton, DXVK, Gamescope, MangoHud, HDR, upscalers and more for any game, all from a real settings page. Save presets and reuse them across games.
 ## Install
