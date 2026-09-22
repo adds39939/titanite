@@ -1,0 +1,25 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Titanite.Abstractions/Titanite.Abstractions.csproj" />
+    <Project Path="src/Titanite.App/Titanite.App.csproj" />
+    <Project Path="src/Titanite.Bootstrap/Titanite.Bootstrap.csproj" />
+    <Project Path="src/Titanite.Catalog/Titanite.Catalog.csproj" />
+    <Project Path="src/Titanite.Core/Titanite.Core.csproj" />
+    <Project Path="src/Titanite.DebugServer/Titanite.DebugServer.csproj" />
+    <Project Path="src/Titanite.Platform/Titanite.Platform.csproj" />
+    <Project Path="src/Titanite.Steam/Titanite.Steam.csproj" />
+    <Project Path="src/Titanite.Storage/Titanite.Storage.csproj" />
+    <Project Path="src/Titanite.UI.Services/Titanite.UI.Services.csproj" />
+    <Project Path="src/Titanite.UI/Titanite.UI.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Titanite.Bootstrap.Tests/Titanite.Bootstrap.Tests.csproj" />
+    <Project Path="tests/Titanite.Catalog.Tests/Titanite.Catalog.Tests.csproj" />
+    <Project Path="tests/Titanite.Core.Tests/Titanite.Core.Tests.csproj" />
+    <Project Path="tests/Titanite.Platform.Tests/Titanite.Platform.Tests.csproj" />
+    <Project Path="tests/Titanite.Steam.Tests/Titanite.Steam.Tests.csproj" />
+    <Project Path="tests/Titanite.Storage.Tests/Titanite.Storage.Tests.csproj" />
+    <Project Path="tests/Titanite.UI.Services.Tests/Titanite.UI.Services.Tests.csproj" />
+    <Project Path="tests/Titanite.UI.Tests/Titanite.UI.Tests.csproj" />
+  </Folder>
+</Solution>

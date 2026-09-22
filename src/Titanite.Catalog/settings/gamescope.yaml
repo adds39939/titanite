@@ -1,0 +1,194 @@
+id: gamescope
+title: Gamescope
+order: 7
+
+command:
+  name: gamescope
+  label: Launch through Gamescope
+  description: Runs the game in Gamescope's compositor, which owns resolution, refresh and HDR.
+  terminator: "--"
+
+  groups:
+    - name: Output
+      flags:
+        - flag: "-W"
+          aliases: ["--output-width"]
+          label: Output width
+          description: The size Gamescope presents to the display, in pixels.
+          kind: number
+          placeholder: "3840"
+
+        - flag: "-H"
+          aliases: ["--output-height"]
+          label: Output height
+          kind: number
+          placeholder: "2160"
+
+        - flag: "-r"
+          aliases: ["--nested-refresh"]
+          label: Refresh rate
+          description: The refresh rate the game is told it is running at.
+          kind: number
+          placeholder: "240"
+
+        - flag: "-w"
+          aliases: ["--nested-width"]
+          label: Game width
+          description: What the game renders at, before scaling.
+          kind: number
+          placeholder: "2560"
+
+        - flag: "-h"
+          aliases: ["--nested-height"]
+          label: Game height
+          kind: number
+          placeholder: "1440"
+
+        - flag: "--framerate-limit"
+          label: Frame rate limit
+          description: A divisor of the refresh rate, not a rate — 2 at 60 Hz gives 30. 0 uncaps.
+          kind: number
+          placeholder: "2"
+
+        - flag: "-O"
+          aliases: ["--prefer-output"]
+          label: Preferred display
+          description: Connectors in order of preference, for a session driving the display.
+          kind: text
+          placeholder: DP-1,HDMI-A-1
+
+    - name: Window
+      flags:
+        - flag: "-f"
+          aliases: ["--fullscreen"]
+          label: Fullscreen
+
+        - flag: "-b"
+          aliases: ["--borderless"]
+          label: Borderless
+
+        - flag: "-g"
+          aliases: ["--grab"]
+          label: Grab the keyboard
+          description: Sends every key to the game, including ones the desktop would take.
+
+        - flag: "--force-grab-cursor"
+          label: Always grab the cursor
+          description: Keeps the mouse in relative mode, for aim that drifts or sticks.
+
+        - flag: "--force-windows-fullscreen"
+          label: Force windows fullscreen
+          description: Resizes windows inside Gamescope to fill it, for games that will not.
+
+    - name: HDR
+      flags:
+        - flag: "--hdr-enabled"
+          label: Enable HDR output
+          description: Outputs HDR to the display. An SDR game needs inverse tone mapping too.
+
+        - flag: "--hdr-sdr-content-nits"
+          label: SDR content brightness
+          description: How bright SDR content is on an HDR output, in nits. Defaults to 400.
+          kind: number
+          placeholder: "400"
+
+        - flag: "--sdr-gamut-wideness"
+          label: SDR gamut wideness
+          description: How far SDR colours stretch towards the full gamut, 0 to 1.
+          kind: text
+          placeholder: "0.5"
+
+        - flag: "--hdr-itm-enabled"
+          aliases: ["--hdr-itm-enable"]
+          label: Inverse tone mapping
+          description: Expands an SDR game into the HDR range. Ignored by an HDR game.
+
+        - flag: "--hdr-itm-sdr-nits"
+          label: Tone mapping input brightness
+          description: The brightness the SDR input is read as. Defaults to 100, at most 1000.
+          kind: number
+          placeholder: "203"
+
+        - flag: "--hdr-itm-target-nits"
+          label: Tone mapping target brightness
+          description: What the expanded output peaks at. Best matched to the display's peak.
+          kind: number
+          placeholder: "800"
+
+    - name: Scaling
+      flags:
+        - flag: "-S"
+          aliases: ["--scaler"]
+          label: Scaler
+          description: How a game smaller than the output is fitted to it.
+          kind: choice
+          choices: [auto, integer, fit, fill, stretch]
+
+        - flag: "-F"
+          aliases: ["--filter"]
+          label: Filter
+          description: fsr is AMD's upscaler and nis NVIDIA's; both work on any card.
+          kind: choice
+          choices: [linear, nearest, fsr, nis, pixel]
+
+        - flag: "--sharpness"
+          aliases: ["--fsr-sharpness"]
+          label: Sharpness
+          description: From 0 for the sharpest to 20 for the softest, backwards as it reads.
+          kind: number
+          placeholder: "2"
+
+        - flag: "-m"
+          aliases: ["--max-scale"]
+          label: Maximum scale
+          description: Caps how far the game is scaled up.
+          kind: text
+          placeholder: "2.0"
+
+    - name: Presentation
+      flags:
+        - flag: "--adaptive-sync"
+          label: Adaptive sync
+          description: Variable refresh rate, where the display and connection support it.
+
+        - flag: "--immediate-flips"
+          label: Immediate flips
+          description: Presents without waiting for the refresh. Lower latency, with tearing.
+
+        - flag: "--force-composition"
+          label: Force composition
+          description: Turns off direct scan-out. Slower, and the fix for a black screen.
+
+        - flag: "--rt"
+          label: Realtime scheduling
+          description: Asks the kernel to schedule Gamescope ahead of everything else.
+
+        - flag: "--mangoapp"
+          label: MangoHud overlay
+          description: Draws MangoHud in Gamescope, which it advises over launching mangohud.
+
+        - flag: "-e"
+          aliases: ["--steam"]
+          label: Steam integration
+          description: Lets the Steam overlay and its keyboard reach the game inside Gamescope.
+
+        - flag: "--expose-wayland"
+          label: Expose Wayland
+          description: Offers xdg-shell, so the game runs as a Wayland client not through XWayland.
+
+        - flag: "--backend"
+          label: Backend
+          description: What Gamescope draws to. drm takes the display over, which HDR usually needs.
+          kind: choice
+          choices: [auto, drm, sdl, wayland, headless]
+
+settings:
+  - variable: ENABLE_GAMESCOPE_WSI
+    label: Enable the Gamescope WSI layer
+    description: Presents straight to Gamescope. Already set for the game it launches.
+    kind: toggle
+
+  - variable: DISABLE_GAMESCOPE_WSI
+    label: Disable the Gamescope WSI layer
+    description: Forces the game back through XWayland, giving up HDR.
+    kind: toggle

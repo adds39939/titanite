@@ -1,0 +1,57 @@
+.command {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 32px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.command-label {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    max-width: 58ch;
+}
+
+.command-name {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.command-description {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.command-token {
+    color: var(--text-muted);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 10px;
+}
+
+.command-control {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 220px;
+}
+
+.switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.switch input {
+    accent-color: var(--accent);
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+}

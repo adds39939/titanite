@@ -1,0 +1,7 @@
+<label class="option" role="menuitemcheckbox" aria-checked="@(IsChecked ? "true" : "false")">
+    <input type="checkbox"
+           checked="@IsChecked"
+           disabled="@Disabled"
+           @onchange="@(args => Toggle(args.Value is true))"/>
+    <span class="option-label">@ChildContent</span>
+</label>

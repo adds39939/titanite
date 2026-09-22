@@ -1,0 +1,31 @@
+<div class="backdrop" @onclick="Cancel" @onkeydown="OnKeyDown">
+    <div class="panel"
+         role="dialog"
+         aria-modal="true"
+         aria-label="New preset"
+         @onclick:stopPropagation="true">
+        <h2 class="title">New preset</h2>
+        <p class="note">
+            A preset is a set of launch options and a Proton build that any number of games can
+            take on at once.
+        </p>
+
+        <input class="name"
+               type="text"
+               aria-label="Preset name"
+               placeholder="Preset name"
+               spellcheck="false"
+               maxlength="@MaximumLength"
+               autofocus
+               value="@Name"
+               @oninput="OnNameInput"/>
+
+        <div class="actions">
+            <Button OnClick="Cancel">Cancel</Button>
+
+            <Button Variant="ButtonVariant.Primary" Disabled="@(!CanCreate)" OnClick="Create">
+                Create
+            </Button>
+        </div>
+    </div>
+</div>

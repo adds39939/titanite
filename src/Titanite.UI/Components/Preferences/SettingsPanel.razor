@@ -1,0 +1,26 @@
+<section class="settings">
+    <header class="settings-header">
+        <h1>Settings</h1>
+        <p class="settings-subtitle">How Titanite reads your @LauncherName installation</p>
+    </header>
+
+    <section class="setting">
+        <div class="setting-label">
+            <h2>@LauncherName installation</h2>
+            <p>Detected automatically. Titanite reads installed games from this location.</p>
+        </div>
+
+        <div class="setting-value">
+            @if (InstallLocation is null)
+            {
+                <p class="setting-missing">No @LauncherName installation found for this user.</p>
+            }
+            else
+            {
+                <p class="setting-path" title="@InstallLocation">@PathDisplay.Abbreviate(InstallLocation)</p>
+            }
+        </div>
+    </section>
+
+    <VariableDescriptionsPanel/>
+</section>

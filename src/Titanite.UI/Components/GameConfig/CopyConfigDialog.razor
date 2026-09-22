@@ -1,0 +1,62 @@
+<div class="backdrop" @onclick="Cancel" @onkeydown="OnKeyDown">
+    <div class="panel"
+         role="dialog"
+         aria-modal="true"
+         aria-label="@($"Copy configuration to {Entry.Name}")"
+         @onclick:stopPropagation="true">
+        <h2 class="title">Copy configuration to @Entry.Name</h2>
+        <p class="note">
+            Takes another game's launch options and its choice of Proton build. Copying a game that
+            uses a preset takes the preset itself, so later changes to it reach this game too.
+            Nothing is written until you save.
+        </p>
+
+        <input class="search"
+               type="search"
+               aria-label="Search games"
+               placeholder="Search games…"
+               spellcheck="false"
+               autofocus
+               value="@SearchTerm"
+               @oninput="OnSearchInput"/>
+
+        @if (IsLoading)
+        {
+            <p class="message">Reading the library…</p>
+        }
+        else if (LoadError is not null)
+        {
+            <p class="message message-error">@LoadError</p>
+        }
+        else if (Matches.Count == 0)
+        {
+            <p class="message">@EmptyMessage</p>
+        }
+        else
+        {
+            <ul class="games">
+                @foreach (var candidate in Matches)
+                {
+                    <li @key="candidate.Entry.Id">
+                        <button type="button" class="game" @onclick="() => Choose(candidate)">
+                            <span class="game-title-line">
+                                <span class="game-name" title="@candidate.Entry.Name">@candidate.Entry.Name</span>
+
+                                @if (candidate.PresetName is { Length: > 0 } preset)
+                                {
+                                    <span class="game-preset" title="@($"Uses the {preset} preset")">@preset</span>
+                                }
+                            </span>
+
+                            <span class="game-summary">@candidate.Summary</span>
+                        </button>
+                    </li>
+                }
+            </ul>
+        }
+
+        <div class="actions">
+            <Button OnClick="Cancel">Cancel</Button>
+        </div>
+    </div>
+</div>

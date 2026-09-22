@@ -1,0 +1,86 @@
+@foreach (var group in ListedGroups)
+{
+    <CollapsibleGroup Name="@group.Name" SetCount="@SetCountIn(group)" @key="group.Options[0].Key">
+        @foreach (var option in group.Options)
+        {
+            <div class="option" @key="option.Key">
+                <div class="option-label">
+                    <span class="option-name">@option.Label</span>
+                    @if (ShowDescriptions && option.Description is not null)
+                    {
+                        <span class="option-description">@option.Description</span>
+                    }
+                    <code class="option-key">@option.Key</code>
+                </div>
+
+                <div class="option-control">
+                    @switch (option.Kind)
+                    {
+                        case SettingKind.Toggle:
+                            <label class="switch">
+                                <input type="checkbox"
+                                       checked="@Current.Contains(option.Key)"
+                                       @onchange="@(args => ToggleOption(option.Key, args.Value is true))"/>
+                                <span>@(Current.Contains(option.Key) ? "On" : "Off")</span>
+                            </label>
+
+                            break;
+
+                        case SettingKind.Choice:
+                            <span class="select-shell">
+                                <select class="control"
+                                        value="@(Current.GetValue(option.Key) ?? string.Empty)"
+                                        @onchange="@(args => SetOption(option.Key, args.Value?.ToString()))">
+                                    <option value="">Not set</option>
+                                    @foreach (var choice in ChoicesFor(option))
+                                    {
+                                        <option value="@choice" @key="choice">@choice</option>
+                                    }
+                                </select>
+
+                                <ChevronIcon/>
+                            </span>
+
+                            break;
+
+                        case SettingKind.Number:
+                            <input class="control"
+                                   type="number"
+                                   placeholder="@option.Placeholder"
+                                   value="@(Current.GetValue(option.Key) ?? string.Empty)"
+                                   @onchange="@(args => SetOption(option.Key, args.Value?.ToString()))"/>
+
+                            break;
+
+                        default:
+                            <input class="control"
+                                   type="text"
+                                   spellcheck="false"
+                                   placeholder="@option.Placeholder"
+                                   value="@(Current.GetValue(option.Key) ?? string.Empty)"
+                                   @onchange="@(args => SetOption(option.Key, args.Value?.ToString()))"/>
+
+                            break;
+                    }
+                </div>
+            </div>
+        }
+    </CollapsibleGroup>
+}
+
+@if (ShowsAdditional)
+{
+    <CollapsibleGroup Name="Additional options" SetCount="@AdditionalCount">
+        <p class="group-note">
+            Appended to everything above. Anything the variable accepts that Titanite does not
+            list can go here, and whatever was already set is kept.
+        </p>
+
+        <input class="control control-wide"
+               type="text"
+               spellcheck="false"
+               placeholder="@AdditionalPlaceholder"
+               value="@AdditionalOptions"
+               @onchange="OnAdditionalChanged"/>
+    </CollapsibleGroup>
+}

@@ -1,0 +1,25 @@
+id: enhancement
+title: Image enhancement
+order: 4
+
+groups:
+  - name: OptiScaler
+    settings:
+      - variable: PROTON_USE_OPTISCALER
+        label: Use OptiScaler
+        description: Redirects a DLSS-only game to FSR or XeSS. Brings its own in-game menu.
+        kind: toggle
+        protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+  - name: vkBasalt
+    settings:
+      - variable: ENABLE_VKBASALT
+        label: Enable vkBasalt
+        description: Applies sharpening, colour correction and Reshade-style effects.
+        kind: toggle
+
+      - variable: VKBASALT_CONFIG_FILE
+        label: vkBasalt config file
+        description: A vkBasalt.conf to use instead of the one in the home directory.
+        placeholder: /home/you/.config/vkBasalt/vkBasalt.conf

@@ -1,0 +1,16 @@
+.not-found {
+    max-width: 1180px;
+    margin: 28px auto;
+}
+
+.not-found h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.not-found p {
+    margin: 4px 0 0;
+    color: var(--text-muted);
+    font-size: 13px;
+}

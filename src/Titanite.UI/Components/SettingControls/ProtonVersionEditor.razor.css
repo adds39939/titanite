@@ -1,0 +1,76 @@
+.row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 0;
+}
+
+.label {
+    flex: none;
+    width: 180px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.select-shell {
+    position: relative;
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    max-width: 460px;
+}
+
+.select-shell ::deep svg {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.select-shell:has(.select:disabled) ::deep svg {
+    opacity: 0.5;
+}
+
+.select {
+    appearance: none;
+    width: 100%;
+    padding: 7px 28px 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-2);
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.select:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.status {
+    margin: 6px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.status code {
+    font-family: ui-monospace, monospace;
+}
+
+.is-warning {
+    color: var(--warning);
+}
+
+.is-error {
+    color: var(--danger);
+}

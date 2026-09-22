@@ -1,0 +1,33 @@
+<li class="game-row">
+    <GameArtwork GameId="@Entry.Id" Name="@Entry.Name" Kind="GameArtworkKind.Header"/>
+
+    <div class="row-main">
+        <div class="row-title-line">
+            <h2 class="row-title" title="@Entry.Name">@Entry.Name</h2>
+            <GameTags Entry="@Entry" PresetName="@PresetName"/>
+        </div>
+
+        <p class="row-path" title="@Entry.InstallDirectory">
+            @PathDisplay.Abbreviate(Entry.InstallDirectory)
+        </p>
+    </div>
+
+    <dl class="row-meta">
+        <div>
+            <dt>ID</dt>
+            <dd>@Entry.Id.Id</dd>
+        </div>
+        <div>
+            <dt>Size</dt>
+            <dd>@FileSizeDisplay.Format(Entry.SizeOnDisk)</dd>
+        </div>
+        <div>
+            <dt>Last played</dt>
+            <dd>@LastPlayedDisplay.Format(Entry.LastPlayed)</dd>
+        </div>
+    </dl>
+
+    <button type="button" class="card-overlay" @onclick="Select">
+        <span class="sr-only">Configure @Entry.Name</span>
+    </button>
+</li>

@@ -1,0 +1,13 @@
+id: intel
+title: Intel
+order: 3
+
+groups:
+  - name: XeSS
+    settings:
+      - variable: PROTON_XESS_UPGRADE
+        label: Upgrade XeSS
+        description: Substitutes the build's copy of Intel's XeSS. Fastest on Arc.
+        kind: toggle
+        protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+        restrictToProtonBuild: true

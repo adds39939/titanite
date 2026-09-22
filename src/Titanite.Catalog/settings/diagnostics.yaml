@@ -1,0 +1,104 @@
+id: diagnostics
+title: Diagnostics
+order: 16
+
+groups:
+  - name: Proton
+    settings:
+      - variable: PROTON_LOG
+        label: Proton logging
+        description: Writes a debug log to the home directory. Slows the game down.
+        kind: toggle
+
+      - variable: PROTON_LOG_DIR
+        label: Log directory
+        description: Where the log is written, in place of the home directory.
+        placeholder: /home/you/proton-logs
+
+      - variable: PROTON_CRASH_REPORT_DIR
+        label: Crash report directory
+        description: Where Wine leaves a crash report, rather than discarding it.
+        placeholder: /home/you/proton-crashes
+
+      - variable: PROTON_REMOTE_DEBUG_CMD
+        label: Remote debug command
+        description: A command to run the game under, for attaching a debugger.
+        placeholder: winedbg --gdb
+
+  - name: Wine
+    settings:
+      - variable: WINEDEBUG
+        label: Wine debug channels
+        description: Which Wine channels are logged, as +channel and -channel.
+        placeholder: +timestamp,+pid,+loaddll
+
+  - name: Renderers
+    settings:
+      - variable: DXVK_LOG_LEVEL
+        label: DXVK log level
+        kind: choice
+        choices: [none, error, warn, info, debug, trace]
+
+      - variable: DXVK_LOG_PATH
+        label: DXVK log directory
+        description: Where DXVK writes its log. none keeps it on standard error.
+        placeholder: /home/you/proton-logs
+
+      - variable: DXVK_NVAPI_LOG_LEVEL
+        label: DXVK-NVAPI log level
+        description: Logged separately from DXVK's own, which is what finds a DLSS fault.
+        kind: choice
+        choices: [none, error, warn, info, debug, trace]
+
+      - variable: DXVK_NVAPI_LOG_PATH
+        label: DXVK-NVAPI log directory
+        placeholder: /home/you/proton-logs
+
+      - variable: VKD3D_DEBUG
+        label: VKD3D log level
+        kind: choice
+        choices: [none, err, fixme, warn, info, trace]
+
+      - variable: VKD3D_SHADER_DEBUG
+        label: VKD3D shader log level
+        description: The shader compiler's own output, much noisier than the rest.
+        kind: choice
+        choices: [none, err, fixme, warn, info, trace]
+
+      - variable: VKD3D_LOG_FILE
+        label: VKD3D log file
+        placeholder: /home/you/proton-logs/vkd3d.log
+
+  - name: Layers and media
+    settings:
+      - variable: VKBASALT_LOG_LEVEL
+        label: vkBasalt log level
+        kind: choice
+        choices: [none, error, warn, info, debug, trace]
+
+      - variable: VKBASALT_LOG_FILE
+        label: vkBasalt log file
+        placeholder: /home/you/proton-logs/vkbasalt.log
+
+      - variable: GST_DEBUG
+        label: GStreamer log level
+        description: Media pipeline logging, from 0 for silence to 9.
+        placeholder: "4"
+
+  - name: Steam Linux Runtime
+    settings:
+      - variable: STEAM_LINUX_RUNTIME_LOG
+        label: Runtime logging
+        description: Writes a log of each launch into the runtime's own var directory.
+        kind: toggle
+
+      - variable: STEAM_LINUX_RUNTIME_VERBOSE
+        label: Verbose runtime logging
+        description: Adds the container's setup to that log, which is where a launch failure shows.
+        kind: toggle
+
+      - variable: PRESSURE_VESSEL_SHELL
+        label: Open a shell in the container
+        description: A terminal inside the container after the game, when it fails, or in its place.
+        kind: choice
+        choices: [after, fail, instead]

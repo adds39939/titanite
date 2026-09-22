@@ -1,0 +1,40 @@
+<section class="descriptions">
+    <div class="descriptions-row">
+        <div class="descriptions-label">
+            <h2>Show variable descriptions</h2>
+            <p>
+                Lists every setting with the sentence explaining what it does. With this off a
+                section is its labels and variable names alone, which is shorter to read once the
+                settings are familiar.
+            </p>
+        </div>
+
+        <div class="descriptions-control">
+            @if (IsLoading)
+            {
+                <span class="control-note">Reading…</span>
+            }
+            else
+            {
+                <label class="switch">
+                    <input type="checkbox"
+                           checked="@Current.ShowVariableDescriptions"
+                           disabled="@IsBusy"
+                           @onchange="OnToggledAsync"/>
+                    <span>@(Current.ShowVariableDescriptions ? "On" : "Off")</span>
+                </label>
+            }
+        </div>
+    </div>
+
+    <p class="explanation">
+        The variable name is shown either way, and searching still reads the descriptions whether
+        or not they are on screen. A configuration screen already open picks this up the next time
+        it is opened.
+    </p>
+
+    @if (Message is not null)
+    {
+        <p class="message is-error">@Message</p>
+    }
+</section>

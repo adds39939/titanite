@@ -1,0 +1,50 @@
+id: amd
+title: AMD
+order: 2
+
+groups:
+  - name: FSR
+    settings:
+      - variable: PROTON_FSR3_UPGRADE
+        label: Upgrade to FSR 3
+        description: Runs an older FidelityFX game against the build's FSR 3 libraries.
+        kind: toggle
+        protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_FSR4_UPGRADE
+        label: Upgrade to FSR 4
+        description: Substitutes AMD's FSR 4 upscaler. Needs RDNA 4, or the switch below.
+        kind: toggle
+        protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_FSR4_RDNA3_UPGRADE
+        label: Allow FSR 4 on RDNA 3
+        description: Runs FSR 4 on an RDNA 3 card, which AMD does not support. Often slower.
+        kind: toggle
+        protonBuilds: ["^GE-Proton"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_FSR4_INDICATOR
+        label: Show the FSR 4 indicator
+        description: An on-screen marker confirming FSR 4 is the upscaler running.
+        kind: toggle
+        protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_MLFG_UPGRADE
+        label: Upgrade frame generation
+        description: Substitutes AMD's machine learning frame generation for the game's own.
+        kind: toggle
+        protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+  - name: Driver libraries
+    settings:
+      - variable: PROTON_NATIVE_AGS
+        label: Native AMD AGS
+        description: Loads AMD's real GPU Services library rather than Wine's stub.
+        kind: toggle
+        protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+        restrictToProtonBuild: true

@@ -1,0 +1,71 @@
+id: audio
+title: Audio and video
+order: 9
+
+groups:
+  - name: Sound
+    settings:
+      - variable: PROTON_USE_PIPEWIRE
+        label: Use PipeWire directly
+        description: Talks to PipeWire directly rather than through its PulseAudio layer.
+        kind: toggle
+        protonBuilds: ["^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+  - name: Media conversion
+    settings:
+      - variable: PROTON_MEDIACONV_NO_VIDEO
+        label: Skip video entirely
+        description: Plays a blank video in place of cut scenes. The audio still plays.
+        kind: toggle
+
+      - variable: PROTON_ENABLE_MEDIACONV
+        label: Enable media conversion
+        description: Turns the whole conversion pipeline on, rather than each part below.
+        kind: toggle
+        protonBuilds: ["^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_VIDEO_CONVERT
+        label: Convert video
+        description: Transcodes the game's video into something the shipped decoders can play.
+        kind: toggle
+        protonBuilds: ["^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_AUDIO_CONVERT
+        label: Convert audio
+        description: The same, for the game's audio streams.
+        kind: toggle
+        protonBuilds: ["^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_AUDIO_CONVERT_BIN
+        label: Convert binary audio
+        description: Extends audio conversion to streams held in the game's own container.
+        kind: toggle
+        protonBuilds: ["^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_DEMUX
+        label: Demultiplex media
+        description: Splits interleaved audio and video apart before either is converted.
+        kind: toggle
+        protonBuilds: ["^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_MEDIA_FORCE_GST
+        label: Force GStreamer
+        description: Sends media through GStreamer even where the game's own decoder would do.
+        kind: toggle
+        protonBuilds: ["^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+  - name: Game-specific
+    settings:
+      - variable: PROTON_ENABLE_MHWILDS_USB_AUDIO
+        label: USB audio workaround
+        description: Works around audio routed to a USB device that is not there.
+        kind: toggle
+        protonBuilds: ["^GE-Proton"]
+        restrictToProtonBuild: true

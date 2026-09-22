@@ -1,0 +1,121 @@
+.summary,
+.empty {
+    margin: 0 0 14px;
+    color: var(--text-muted);
+    font-size: 12px;
+    max-width: 66ch;
+}
+
+.presets {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 8px;
+}
+
+.preset {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-1);
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 120ms ease, background 120ms ease;
+}
+
+.preset:hover {
+    border-color: var(--accent);
+}
+
+.preset.is-active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.preset-label {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.preset-detail {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.preset-mask {
+    color: var(--text-muted);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+}
+
+.group-note {
+    margin: 6px 0 10px;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.group-note code {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+}
+
+.threads {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+    gap: 4px;
+    margin-top: 10px;
+}
+
+.thread {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 5px 0;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface-1);
+    color: var(--text-muted);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.thread.is-on {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--text);
+}
+
+.thread input {
+    accent-color: var(--accent);
+    width: 12px;
+    height: 12px;
+    cursor: pointer;
+}
+
+.mask {
+    width: 100%;
+    max-width: 340px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-0);
+    color: var(--text);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 12px;
+}
+
+.mask:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.mask::placeholder {
+    color: var(--text-muted);
+}

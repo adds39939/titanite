@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Gameloop.Vdf" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Titanite.Abstractions\Titanite.Abstractions.csproj" />
+      <ProjectReference Include="..\Titanite.Core\Titanite.Core.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+      <InternalsVisibleTo Include="Titanite.Bootstrap" />
+      <InternalsVisibleTo Include="Titanite.Steam.Tests" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,83 @@
+.game-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-1);
+    transition: border-color 120ms ease;
+}
+
+.game-row:hover {
+    border-color: var(--accent);
+}
+
+.row-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.row-title-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.row-title {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.row-path {
+    margin: 2px 0 0;
+    color: var(--text-muted);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.row-meta {
+    display: grid;
+    grid-template-columns: 68px 80px 112px;
+    flex: none;
+    gap: 22px;
+    margin: 0;
+}
+
+.row-meta dt {
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.row-meta dd {
+    margin: 1px 0 0;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.card-overlay {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+    background: none;
+    cursor: pointer;
+}
+
+.card-overlay:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}

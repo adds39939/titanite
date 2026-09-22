@@ -1,0 +1,54 @@
+.button {
+    flex: none;
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-2);
+    color: var(--text);
+    font: inherit;
+    cursor: pointer;
+    transition: border-color 120ms ease, background 120ms ease;
+}
+
+.button:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.button:disabled {
+    border-color: var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    opacity: 0.5;
+    cursor: default;
+}
+
+.button-primary {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--text);
+}
+
+.button-danger {
+    border-color: var(--danger);
+    background: var(--removed-soft);
+    color: var(--danger);
+}
+
+.button-destructive:hover:not(:disabled),
+.button-danger:hover:not(:disabled) {
+    border-color: var(--danger);
+    background: var(--removed-soft);
+    color: var(--danger);
+}
+
+.button-quiet {
+    padding: 7px 12px;
+    background: transparent;
+    font-size: 12px;
+}
+
+.button-small {
+    padding: 6px 14px;
+    font-size: 13px;
+}

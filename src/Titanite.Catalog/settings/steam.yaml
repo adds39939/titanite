@@ -1,0 +1,43 @@
+id: steam
+title: Steam
+order: 14
+
+groups:
+  - name: Overlay
+    settings:
+      - variable: LD_PRELOAD
+        label: Preloaded libraries
+        description: Loaded into the game ahead of everything else. Set empty to keep Steam's overlay out.
+        placeholder: /usr/lib/libgamemodeauto.so.0
+        allowEmpty: true
+
+      - variable: DISABLE_VK_LAYER_VALVE_steam_overlay_1
+        label: Disable the overlay's Vulkan layer
+        description: Keeps the Steam overlay out of Vulkan, which includes every DXVK and VKD3D game.
+        kind: toggle
+
+  - name: Shader pre-caching
+    settings:
+      - variable: DISABLE_VK_LAYER_VALVE_steam_fossilize_1
+        label: Stop recording pipelines
+        description: Keeps Steam's Fossilize layer from capturing this game's pipelines to pre-compile.
+        kind: toggle
+
+  - name: Identity
+    settings:
+      - variable: SteamDeck
+        label: Report a Steam Deck
+        description: Tells the game and Proton they are on a Steam Deck. Some games then pick Deck presets.
+        kind: toggle
+
+  - name: Steam Linux Runtime
+    settings:
+      - variable: STEAM_COMPAT_MOUNTS
+        label: Extra paths in the container
+        description: Paths the runtime container should see, separated by colons. For mods on another drive.
+        placeholder: /mnt/games:/mnt/mods
+
+      - variable: PRESSURE_VESSEL_FILESYSTEMS_RW
+        label: Writable paths in the container
+        description: Paths the container may write to, separated by colons.
+        placeholder: /mnt/mods

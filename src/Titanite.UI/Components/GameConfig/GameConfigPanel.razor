@@ -1,0 +1,164 @@
+@inherits LauncherAvailabilityView
+@using Titanite.UI.Services.Presentation
+
+<section class="config" @onkeydown="OnKeyDown">
+
+    @if (Presenter.Entry is null)
+    {
+        <header class="config-header">
+            <div class="config-heading">
+                <h1 class="config-title">@(Presenter.IsLoading ? "Loading…" : "Unknown game")</h1>
+                <p class="config-subtitle">@Presenter.Describe(GameId)</p>
+            </div>
+
+            <Button OnClick="Back">Back to library</Button>
+        </header>
+
+        @if (Presenter.IsLoading)
+        {
+            <p class="config-message">Reading the library…</p>
+        }
+        else
+        {
+            <p class="config-message config-message-error">
+                @(Presenter.LoadError ?? "No installed game has that identifier.")
+            </p>
+        }
+    }
+    else
+    {
+        <header class="config-header">
+            <GameArtwork GameId="@Presenter.Entry.Id" Name="@Presenter.Entry.Name" Kind="GameArtworkKind.Header"/>
+
+            <div class="config-heading">
+                <h1 class="config-title" title="@Presenter.Entry.Name">@Presenter.Entry.Name</h1>
+                <p class="config-subtitle">@Presenter.Describe(Presenter.Entry.Id)</p>
+            </div>
+
+            <div class="config-actions">
+                <SingleSelectDropdown Label="Open" Disabled="@Presenter.IsSaving">
+                    <SingleSelectDropdownItem OnSelect="OpenInstallDirectory">Game install</SingleSelectDropdownItem>
+                    <SingleSelectDropdownItem OnSelect="OpenPrefixDirectory">Prefix</SingleSelectDropdownItem>
+                </SingleSelectDropdown>
+
+                <Button Variant="@(LaunchPending ? ButtonVariant.Danger : ButtonVariant.Default)"
+                        Disabled="@(Presenter.IsSaving || !Presenter.CanLaunch)"
+                        OnClick="Launch">
+                    @(LaunchPending ? "Launch anyway" : "Launch game")
+                </Button>
+
+                <Button OnClick="Back">Back to library</Button>
+            </div>
+        </header>
+
+        @if (Presenter.IsLoading)
+        {
+            <p class="config-message">Reading launch options…</p>
+        }
+        else if (Presenter.LoadError is not null)
+        {
+            <p class="config-message config-message-error">@Presenter.LoadError</p>
+        }
+        else
+        {
+            <div class="config-editor">
+                <LaunchOptionsEditor @ref="Editor"
+                                     Options="@Presenter.Editing"
+                                     OptionsChanged="OnOptionsChanged"
+                                     Entry="@Presenter.Entry"
+                                     ShowProton="true"
+                                     CompatTool="@Presenter.CompatTool"
+                                     CompatToolChanged="OnCompatToolChanged"
+                                     Build="@Presenter.EffectiveBuild"
+                                     IsBusy="@Presenter.IsSaving">
+                    <Leading>
+                        <SingleSelectDropdown Label="@Presenter.PresetLabel" Disabled="@Presenter.IsSaving">
+                            @foreach (var preset in Presenter.Presets)
+                            {
+                                <SingleSelectDropdownItem IsSelected="@(preset.Id == Presenter.AppliedPresetId)"
+                                                          OnSelect="() => OnPresetChosen(preset.Id)"
+                                                          @key="preset.Id">
+                                    @preset.Name
+                                </SingleSelectDropdownItem>
+                            }
+
+                            <SingleSelectDropdownItem IsSelected="@(Presenter.AppliedPresetId is null)"
+                                                      OnSelect="() => OnPresetChosen(null)">
+                                @IGameConfigurationPresenter.NoPreset
+                            </SingleSelectDropdownItem>
+                        </SingleSelectDropdown>
+
+                        <span class="preset-note">
+                            @if (Presenter.AppliedPreset is { } preset)
+                            {
+                                <text>
+                                    Using @preset.Name. Changing any setting below makes these the
+                                    game's own, keeping whatever the preset put there.
+                                </text>
+                            }
+                            else
+                            {
+                                <text>Configured on its own. Picking a preset replaces the settings below.</text>
+                            }
+                        </span>
+                    </Leading>
+                </LaunchOptionsEditor>
+
+                <footer class="config-footer">
+                    <div class="footer-status">
+                        @if (Presenter.Status is { } status)
+                        {
+                            <span class="@status.CssClass">@status.Text</span>
+                        }
+                        else if (UnavailableReason is { } reason)
+                        {
+                            <span class="status-warning">@reason</span>
+                        }
+                        else if (Presenter.HasChanges)
+                        {
+                            <span>Unsaved changes.</span>
+                        }
+                    </div>
+
+                    <div class="footer-actions">
+                        <Button Disabled="@Presenter.IsSaving" OnClick="AskToCopy">
+                            Copy config from…
+                        </Button>
+
+                        <Button Variant="@(ResetPending ? ButtonVariant.Danger : ButtonVariant.Default)"
+                                Disabled="@(Presenter.IsSaving || !CanSave || !Presenter.HasAnythingToReset)"
+                                OnClick="ResetAsync">
+                            @(ResetPending ? "Confirm reset" : "Reset")
+                        </Button>
+
+                        <Button Disabled="@(!Presenter.HasChanges || Presenter.IsSaving)" OnClick="Revert">
+                            Revert
+                        </Button>
+
+                        <Button Variant="ButtonVariant.Primary"
+                                Disabled="@(!Presenter.HasChanges || Presenter.IsSaving || !CanSave)"
+                                OnClick="AskToSave">
+                            @(Presenter.IsSaving ? "Saving…" : "Save")
+                        </Button>
+                    </div>
+                </footer>
+            </div>
+        }
+    }
+</section>
+
+@if (IsChoosingSource && Presenter.Entry is not null)
+{
+    <CopyConfigDialog Entry="@Presenter.Entry" OnChoose="CopyFrom" OnCancel="CancelCopy"/>
+}
+
+@if (IsConfirmingSave && Presenter.Entry is not null)
+{
+    <SaveConfirmation Options="@Presenter.Editing"
+                      Saved="@Presenter.SavedOptions"
+                      Subject="@Presenter.Entry.Name"
+                      AlsoChanging="@Presenter.PendingSideEffects"
+                      IsBusy="@Presenter.IsSaving"
+                      OnConfirm="SaveAsync"
+                      OnCancel="CancelSave"/>
+}

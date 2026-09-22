@@ -1,0 +1,188 @@
+id: nvidia
+title: Nvidia
+order: 1
+
+groups:
+  - name: DLSS
+    settings:
+      - variable: PROTON_DLSS_UPGRADE
+        label: Upgrade DLSS libraries
+        description: Runs against the build's newer DLSS libraries, leaving the install alone.
+        kind: toggle
+        protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_DLSS_INDICATOR
+        label: Show the DLSS indicator
+        description: NVIDIA's on-screen marker showing DLSS is running and its preset.
+        kind: toggle
+        protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+      - variable: DXVK_NVAPI_SET_NGX_DEBUG_OPTIONS
+        label: Display SR debug info
+        description: Overlays DLSS's own debug readout, including which preset is live.
+        kind: toggle
+        on: DLSSIndicator=1024
+
+      - variable: DXVK_NVAPI_DRS_NGX_DLSS_SR_OVERRIDE_RENDER_PRESET_SELECTION
+        label: SR override preset
+        description: Forces a super-resolution render preset whatever the game asks for.
+        kind: choice
+        choices: &renderPresets
+          - RENDER_PRESET_Default
+          - RENDER_PRESET_Latest
+          - RENDER_PRESET_A
+          - RENDER_PRESET_B
+          - RENDER_PRESET_C
+          - RENDER_PRESET_D
+          - RENDER_PRESET_E
+          - RENDER_PRESET_F
+          - RENDER_PRESET_G
+          - RENDER_PRESET_H
+          - RENDER_PRESET_I
+          - RENDER_PRESET_J
+          - RENDER_PRESET_K
+          - RENDER_PRESET_L
+          - RENDER_PRESET_M
+          - RENDER_PRESET_N
+          - RENDER_PRESET_O
+          - RENDER_PRESET_P
+          - RENDER_PRESET_Q
+          - RENDER_PRESET_R
+          - RENDER_PRESET_S
+          - RENDER_PRESET_T
+          - RENDER_PRESET_U
+          - RENDER_PRESET_V
+          - RENDER_PRESET_W
+          - RENDER_PRESET_X
+          - RENDER_PRESET_Y
+          - RENDER_PRESET_Z
+
+      - variable: DXVK_NVAPI_DRS_NGX_DLSS_RR_OVERRIDE_RENDER_PRESET_SELECTION
+        label: RR override preset
+        description: The same override, applied to ray reconstruction's denoiser.
+        kind: choice
+        choices: *renderPresets
+
+      - variable: DXVK_NVAPI_DRS_NGX_DLSS_FG_OVERRIDE_RENDER_PRESET_SELECTION
+        label: FG override preset
+        description: The same override, applied to frame generation.
+        kind: choice
+        choices: *renderPresets
+
+      - variable: DXVK_NVAPI_DRS_NGX_DLSS_FG_OVERRIDE
+        label: Force frame generation
+        description: Forces frame generation on or off over the game's own setting.
+        kind: choice
+        choices: ["on", "off"]
+
+      - variable: DXVK_NVAPI_DRS_NGX_DLSSG_MULTI_FRAME_COUNT
+        label: Generated frames per rendered frame
+        description: Frames generated per drawn frame, 1 to 4. Needs frame generation on.
+        kind: number
+        placeholder: "3"
+
+  - name: NVAPI
+    settings:
+      - variable: PROTON_DISABLE_NVAPI
+        label: Disable NVAPI
+        description: Hides NVIDIA's driver interface, taking DLSS and Reflex with it.
+        kind: toggle
+
+      - variable: PROTON_FORCE_NVAPI
+        label: Force NVAPI on
+        description: Loads NVAPI even where Proton would have decided against it.
+        kind: toggle
+
+      - variable: PROTON_ENABLE_NVAPI
+        label: Enable NVAPI
+        description: Exposes NVAPI to the game. Only needed on older Proton.
+        kind: toggle
+
+      - variable: PROTON_ENABLE_NGX_UPDATER
+        label: Allow NGX updates
+        description: Lets Proton keep NVIDIA's NGX runtime current.
+        kind: toggle
+
+      - variable: DXVK_ENABLE_NVAPI
+        label: Enable DXVK-NVAPI
+        description: Loads DXVK's NVAPI implementation even where it would stand aside.
+        kind: toggle
+
+      - variable: DXVK_NVAPI_ALLOW_OTHER_DRIVERS
+        label: Allow non-NVIDIA drivers
+        description: Lets DXVK-NVAPI load on drivers it would otherwise refuse.
+        kind: toggle
+
+      - variable: DXVK_NVAPI_DRIVER_VERSION
+        label: Reported driver version
+        description: The driver version reported to the game, without its dot — 57006 for 570.06.
+        kind: number
+        placeholder: "57006"
+
+      - variable: DXVK_NVAPI_GPU_ARCH
+        label: Reported GPU architecture
+        description: The architecture the game is told it runs on, such as GA102 or AD102.
+        placeholder: AD102
+
+      - variable: DXVK_NVAPI_DISABLE_ENTRYPOINTS
+        label: Disabled entry points
+        description: NVAPI functions to hide, so one bad call can be taken away alone.
+        placeholder: NvAPI_D3D12_CreateGraphicsPipelineState
+
+  - name: Driver libraries
+    settings:
+      - variable: PROTON_NVIDIA_LIBS
+        label: Use NVIDIA's own libraries
+        description: Substitutes the driver's real CUDA, NVENC, NVML and OptiX for Wine's stubs.
+        kind: toggle
+        protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_NVIDIA_LIBS_NO_32BIT
+        label: 64-bit libraries only
+        description: Leaves the 32-bit halves alone, for a prefix where they cause trouble.
+        kind: toggle
+        protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_NVIDIA_NVCUDA
+        label: CUDA
+        description: The driver's real CUDA runtime, on its own rather than as a group.
+        kind: toggle
+        protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_NVIDIA_NVENC
+        label: NVENC
+        description: Hardware video encoding, which is what a game's own recorder wants.
+        kind: toggle
+        protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_NVIDIA_NVML
+        label: NVML
+        description: The management library a game reads clocks and temperatures through.
+        kind: toggle
+        protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_NVIDIA_NVOPTIX
+        label: OptiX
+        description: NVIDIA's ray tracing denoiser, used by renderers rather than games.
+        kind: toggle
+        protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+  - name: Smooth Motion
+    settings:
+      - variable: NVPRESENT_ENABLE_SMOOTH_MOTION
+        label: Enable Smooth Motion
+        description: Interpolates frames in the driver, for a game with no frame generation.
+        kind: toggle
+
+      - variable: NVPRESENT_QUEUE_FAMILY
+        label: Present on a separate queue
+        description: Moves presentation off the game's own queue, for stutter or a blank screen.
+        kind: toggle

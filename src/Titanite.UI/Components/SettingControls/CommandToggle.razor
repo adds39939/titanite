@@ -1,0 +1,17 @@
+<div class="command">
+    <div class="command-label">
+        <span class="command-name">@Label</span>
+        @if (ShowDescription && Description is not null)
+        {
+            <span class="command-description">@Description</span>
+        }
+        <code class="command-token">@Command</code>
+    </div>
+
+    <div class="command-control">
+        <label class="switch">
+            <input type="checkbox" checked="@IsOn" @onchange="OnToggled"/>
+            <span>@(IsOn ? "On" : "Off")</span>
+        </label>
+    </div>
+</div>

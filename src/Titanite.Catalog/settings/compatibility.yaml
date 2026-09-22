@@ -1,0 +1,107 @@
+id: compatibility
+title: Compatibility
+order: 15
+
+groups:
+  - name: Libraries
+    settings:
+      - variable: WINEDLLOVERRIDES
+        label: DLL overrides
+        description: Chooses between Wine's built-in DLLs and the game's own.
+        placeholder: dxgi=n,b
+
+      - variable: PROTON_DLL_COPY
+        label: DLLs to copy into the prefix
+        description: Patterns to copy rather than symlink, replacing Proton's own list.
+        placeholder: d3dcompiler_*.dll,xinput*.dll
+
+      - variable: PROTON_ADD_CONFIG
+        label: Extra compatibility flags
+        description: Extra entries for the build's compatibility configuration.
+        placeholder: forcelgadd
+        protonBuilds: ["^GE-Proton"]
+        restrictToProtonBuild: true
+
+  - name: Memory
+    settings:
+      - variable: PROTON_FORCE_LARGE_ADDRESS_AWARE
+        label: Large address aware
+        description: Gives 32-bit games access to more than 2 GB of address space.
+        kind: toggle
+
+      - variable: PROTON_LIMIT_ADDRESS_SPACE
+        label: Limit the address space
+        description: Takes that back, for a game whose pointers break above 2 GB.
+        kind: toggle
+
+      - variable: PROTON_HEAP_DELAY_FREE
+        label: Delay freeing heap memory
+        description: Holds freed allocations back, for a game that reads memory it released.
+        kind: toggle
+
+      - variable: PROTON_HEAP_ZERO_MEMORY
+        label: Zero heap memory
+        description: Hands out cleared memory, for a game assuming a fresh allocation is empty.
+        kind: toggle
+
+  - name: Execution
+    settings:
+      - variable: PROTON_USE_WOW64
+        label: New WoW64 mode
+        description: Runs 32-bit games through new WoW64 rather than a 32-bit Wine.
+        kind: toggle
+
+      - variable: PROTON_USE_ARM64
+        label: ARM64EC translation
+        description: On ARM, runs x86 code through FEX. Irrelevant on an x86 machine.
+        kind: toggle
+
+      - variable: PROTON_USE_WRITECOPY
+        label: Simulate copy-on-write
+        description: Real copy-on-write page protection, which some anti-tamper checks for.
+        kind: toggle
+        protonBuilds: ["^GE-Proton"]
+        restrictToProtonBuild: true
+
+  - name: Drives
+    settings:
+      - variable: PROTON_SET_GAME_DRIVE
+        label: Map the game to a drive letter
+        description: Gives the game's library its own drive letter.
+        kind: toggle
+
+      - variable: PROTON_SET_STEAM_DRIVE
+        label: Map Steam to a drive letter
+        description: The same, for the Steam installation itself.
+        kind: toggle
+
+  - name: Hiding hardware
+    settings:
+      - variable: PROTON_HIDE_NVIDIA_GPU
+        label: Hide the NVIDIA GPU
+        kind: toggle
+
+      - variable: WINE_HIDE_AMD_GPU
+        label: Hide the AMD GPU
+        kind: toggle
+
+      - variable: PROTON_HIDE_INTEL_GPU
+        label: Hide the Intel GPU
+        kind: toggle
+
+      - variable: PROTON_HIDE_APU
+        label: Hide the integrated GPU
+        description: For a machine where the game keeps choosing the APU over the card.
+        kind: toggle
+
+      - variable: PROTON_HIDE_VANGOGH_GPU
+        label: Hide the Steam Deck GPU
+        description: Van Gogh is the Deck's own APU; this hides it specifically.
+        kind: toggle
+
+  - name: Older games
+    settings:
+      - variable: PROTON_OLD_GL_STRING
+        label: Short OpenGL version string
+        description: Reports a shorter OpenGL extension list, for an old fixed-size buffer.
+        kind: toggle

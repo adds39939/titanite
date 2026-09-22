@@ -1,0 +1,30 @@
+id: hdr
+title: HDR
+order: 6
+
+settings:
+  - variable: PROTON_ENABLE_HDR
+    label: Enable HDR in Proton
+    description: Lets Proton advertise HDR to the game. Needs a Wayland session.
+    kind: toggle
+    protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+    restrictToProtonBuild: true
+
+  - variable: PROTON_USE_HDR
+    label: Enable HDR in Proton (older name)
+    description: The older spelling of the same switch. GE-Proton reads both.
+    kind: toggle
+    protonBuilds: ["^GE-Proton"]
+    restrictToProtonBuild: true
+    hideUnlessSet: true
+
+  - variable: DXVK_HDR
+    label: Enable HDR in DXVK
+    description: Turns on HDR output in the D3D-to-Vulkan layer.
+    kind: toggle
+
+  - variable: DXVK_NO_HDR
+    label: Refuse HDR in DXVK
+    description: Refuses HDR whatever asks for it, which is the way back to SDR.
+    kind: toggle
+    protonBuilds: ["^(proton-)?cachyos"]

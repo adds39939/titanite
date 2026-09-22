@@ -1,0 +1,30 @@
+id: cpu
+title: CPU
+order: 11
+
+groups:
+  - name: Synchronisation
+    settings:
+      - variable: PROTON_NO_ESYNC
+        label: Disable esync
+        description: Turns off eventfd synchronisation. Costs performance; fixes some games.
+        kind: toggle
+
+      - variable: PROTON_NO_FSYNC
+        label: Disable fsync
+        description: Turns off futex synchronisation, the faster successor to esync.
+        kind: toggle
+
+      - variable: PROTON_NO_NTSYNC
+        label: Disable ntsync
+        description: Turns off the kernel's own synchronisation, falling back to fsync.
+        kind: toggle
+        protonBuilds: ["^GE-Proton"]
+        restrictToProtonBuild: true
+
+  - name: Cores
+    settings:
+      - variable: PROTON_CPU_TOPOLOGY
+        label: Reported core count
+        description: How many cores the game is told it has. 8, or 8:0,1,2,3 to name them.
+        placeholder: "8"

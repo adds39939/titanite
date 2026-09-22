@@ -1,0 +1,76 @@
+@if (IsLoading)
+{
+    <p class="status">Reading installed Proton builds…</p>
+}
+else if (LoadError is not null)
+{
+    <p class="status is-error">@LoadError</p>
+}
+else if (Catalogue.Builds.Count == 0)
+{
+    <p class="status">No Proton builds are installed, so there is nothing to choose between.</p>
+}
+else
+{
+    <div class="row">
+        <label class="label" for="proton-build">Proton build</label>
+
+        <span class="select-shell">
+            <select id="proton-build"
+                    class="select"
+                    disabled="@IsBusy"
+                    value="@Value"
+                    @onchange="OnSelected">
+                <option value="@InheritValue">@InheritLabel</option>
+
+                @if (ChoiceIsMissing)
+                {
+                    <option value="@Value">@Value — not installed</option>
+                }
+
+                @foreach (var build in Catalogue.Builds)
+                {
+                    <option value="@build.Name" @key="build.Name">@OptionLabel(build)</option>
+                }
+            </select>
+
+            <ChevronIcon/>
+        </span>
+    </div>
+
+    @if (ForGame)
+    {
+        <p class="status">@StoredSummary</p>
+    }
+    else
+    {
+        <p class="status">
+            @(IsInherited
+                ? "Games using this preset keep whatever build they already run under."
+                : "Games using this preset are moved onto this build when the preset is saved.")
+        </p>
+    }
+
+    @if (HasPendingChange)
+    {
+        <p class="status is-warning">
+            The game's Wine prefix was built by @StoredName. Changing build makes Proton update it
+            on the next launch, and an older build may not be able to read what a newer one wrote.
+        </p>
+    }
+
+    @if (ChoiceIsMissing)
+    {
+        <p class="status is-error">
+            <code>@Value</code> is not installed. The game will not start until it is given a build
+            that exists.
+        </p>
+    }
+    else if (Chosen is { NameIsDerived: true })
+    {
+        <p class="status is-warning">
+            Steam's compatibility log no longer names this build, so <code>@Chosen.Name</code> was
+            inferred. If the game still runs under its old build after saving, the guess was wrong.
+        </p>
+    }
+}

@@ -1,0 +1,86 @@
+.descriptions {
+    margin-top: 24px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-1);
+}
+
+.descriptions-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 32px;
+}
+
+.descriptions-label {
+    min-width: 0;
+    max-width: 68ch;
+}
+
+.descriptions-label h2 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.descriptions-label p {
+    margin: 3px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.descriptions-control {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 180px;
+}
+
+.switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.switch input {
+    accent-color: var(--accent);
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+}
+
+.switch input:disabled {
+    cursor: default;
+}
+
+.control-note {
+    color: var(--text-muted);
+    font-size: 12px;
+    text-align: right;
+}
+
+.explanation {
+    margin: 12px 0 0;
+    max-width: 78ch;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.message {
+    margin: 12px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.is-error {
+    color: var(--danger);
+}

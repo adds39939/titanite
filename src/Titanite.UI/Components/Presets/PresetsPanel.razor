@@ -1,0 +1,120 @@
+@inherits LauncherAvailabilityView
+
+<section class="presets">
+
+    <header class="presets-header">
+        <div class="presets-heading">
+            <h1 class="presets-title">Presets</h1>
+            <p class="presets-subtitle">
+                Settings a game can take on instead of being configured on its own.
+            </p>
+        </div>
+
+        <div class="presets-actions">
+            <SingleSelectDropdown Label="@Presenter.Selected.Name" Disabled="@Presenter.IsSaving">
+                @foreach (var preset in Presenter.Presets)
+                {
+                    <SingleSelectDropdownItem IsSelected="@(preset.Id == Presenter.SelectedId)"
+                                              OnSelect="() => Choose(preset.Id)"
+                                              @key="preset.Id">
+                        @preset.Name
+                    </SingleSelectDropdownItem>
+                }
+            </SingleSelectDropdown>
+
+            <Button Disabled="@Presenter.IsSaving" OnClick="AskToCreate">New preset</Button>
+
+            <Button Variant="@(DeletePending ? ButtonVariant.Danger : ButtonVariant.Destructive)"
+                    Disabled="@(Presenter.IsSaving || !Presenter.CanDelete)"
+                    OnClick="DeleteAsync">
+                @(DeletePending ? "Confirm remove" : "Remove")
+            </Button>
+        </div>
+    </header>
+
+    @if (Presenter.IsLoading)
+    {
+        <p class="presets-message">Reading the presets…</p>
+    }
+    else
+    {
+        <div class="presets-editor">
+            <LaunchOptionsEditor Options="@Presenter.Editing"
+                                 OptionsChanged="OnOptionsChanged"
+                                 ShowProton="true"
+                                 CompatTool="@Presenter.CompatTool"
+                                 CompatToolChanged="OnCompatToolChanged"
+                                 Build="@Presenter.EffectiveBuild"
+                                 IsBusy="@Presenter.IsSaving">
+                <Leading>
+                    <span class="preset-note">
+                        @if (Presenter.AppliedCount == 0)
+                        {
+                            <text>No game uses @Presenter.Selected.Name yet.</text>
+                        }
+                        else
+                        {
+                            <text>
+                                @Presenter.AppliedCount
+                                @(Presenter.AppliedCount == 1 ? "game uses" : "games use")
+                                @Presenter.Selected.Name. Saving applies these settings to
+                                @(Presenter.AppliedCount == 1 ? "it" : "them").
+                            </text>
+                        }
+                    </span>
+                </Leading>
+            </LaunchOptionsEditor>
+
+            <footer class="presets-footer">
+                <div class="footer-status">
+                    @if (Presenter.Status is { } status)
+                    {
+                        <span class="@status.CssClass">@status.Text</span>
+                    }
+                    else if (UnavailableReason is { } reason)
+                    {
+                        <span class="status-warning">@reason</span>
+                    }
+                    else if (Presenter.HasChanges)
+                    {
+                        <span>Unsaved changes.</span>
+                    }
+                </div>
+
+                <div class="footer-actions">
+                    <Button Variant="@(ResetPending ? ButtonVariant.Danger : ButtonVariant.Default)"
+                            Disabled="@(Presenter.IsSaving || !Presenter.HasAnythingToReset)"
+                            OnClick="ResetAsync">
+                        @(ResetPending ? "Confirm reset" : "Reset")
+                    </Button>
+
+                    <Button Disabled="@(!Presenter.HasChanges || Presenter.IsSaving)" OnClick="Revert">
+                        Revert
+                    </Button>
+
+                    <Button Variant="ButtonVariant.Primary"
+                            Disabled="@(!Presenter.HasChanges || Presenter.IsSaving || !CanSave)"
+                            OnClick="AskToSave">
+                        @(Presenter.IsSaving ? "Saving…" : "Save")
+                    </Button>
+                </div>
+            </footer>
+        </div>
+    }
+</section>
+
+@if (IsNaming)
+{
+    <NewPresetDialog OnCreate="CreateAsync" OnCancel="CancelCreate"/>
+}
+
+@if (IsConfirmingSave)
+{
+    <SaveConfirmation Options="@Presenter.Editing"
+                      Saved="@Presenter.SavedOptions"
+                      Subject="@($"the {Presenter.Selected.Name} preset")"
+                      AlsoChanging="@Presenter.PendingSideEffects"
+                      IsBusy="@Presenter.IsSaving"
+                      OnConfirm="SaveAsync"
+                      OnCancel="CancelSave"/>
+}

@@ -1,0 +1,19 @@
+<div class="preview">
+    <div class="preview-heading">
+        <span class="preview-label">@Label</span>
+        <span class="legend">
+            <span class="legend-item legend-added">added</span>
+            <span class="legend-item legend-removed">removed</span>
+        </span>
+    </div>
+
+    @if (WritesNothing)
+    {
+        <p class="preview-empty">Nothing. The game will be launched with no options set.</p>
+    }
+    else
+    {
+        <pre class="raw">@foreach (var token in Diff)
+{<span class="token token-@token.Kind.ToString().ToLowerInvariant()">@token.Text</span>@(" ")}</pre>
+    }
+</div>

@@ -1,0 +1,22 @@
+@if (Name is { Length: > 0 } heading)
+{
+    <details class="group" open>
+        <summary class="group-summary">
+            <span class="group-marker"><ChevronIcon/></span>
+            <span class="group-name">@heading</span>
+
+            @if (SetCount > 0)
+            {
+                <span class="group-count">@SetCount</span>
+            }
+        </summary>
+
+        <div class="group-body">
+            @ChildContent
+        </div>
+    </details>
+}
+else
+{
+    @ChildContent
+}

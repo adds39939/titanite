@@ -1,0 +1,33 @@
+.artwork {
+    display: block;
+    flex: none;
+    border-radius: 8px;
+    background: var(--surface-2);
+    object-fit: cover;
+}
+
+.artwork-capsule {
+    width: 100%;
+    aspect-ratio: 2 / 3;
+}
+
+.artwork-header {
+    width: 92px;
+    aspect-ratio: 460 / 215;
+}
+
+.artwork-fallback {
+    display: grid;
+    place-items: center;
+    color: var(--accent);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+.artwork-capsule.artwork-fallback {
+    font-size: 28px;
+}
+
+.artwork-header.artwork-fallback {
+    font-size: 14px;
+}

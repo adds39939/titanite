@@ -1,0 +1,103 @@
+.config {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.config-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: none;
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-1);
+}
+
+.config-heading {
+    flex: 1;
+    min-width: 0;
+}
+
+.config-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.config-subtitle {
+    margin: 2px 0 0;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.config-actions {
+    display: flex;
+    gap: 8px;
+    flex: none;
+}
+
+.config-message {
+    margin: 0;
+    padding: 28px;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.config-message-error {
+    color: var(--danger);
+}
+
+.config-editor {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+.config-footer {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    justify-content: space-between;
+    flex: none;
+    padding: 12px 24px;
+    border-top: 1px solid var(--border);
+    background: var(--surface-1);
+}
+
+.footer-status {
+    flex: 1;
+    min-width: 0;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.status-warning {
+    color: var(--warning);
+}
+
+.status-error {
+    color: var(--danger);
+}
+
+.status-success {
+    color: var(--accent);
+}
+
+.footer-actions {
+    display: flex;
+    gap: 8px;
+    flex: none;
+}
+
+.preset-note {
+    min-width: 0;
+    color: var(--text-muted);
+    font-size: 12px;
+}

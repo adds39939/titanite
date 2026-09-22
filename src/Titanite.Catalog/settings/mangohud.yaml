@@ -1,0 +1,90 @@
+id: mangohud
+title: MangoHud
+order: 12
+
+settings:
+  - variable: MANGOHUD_CONFIG
+    label: MangoHud options
+    description: Comma-separated MangoHud settings, such as fps_limit and its method.
+    compound:
+      separator: ","
+      assignment: "="
+      groups:
+        - name: Frame limiting
+          options:
+            - key: fps_limit
+              label: Frame rate limit
+              kind: text
+              placeholder: "224"
+              description: One limit, or several separated by commas to cycle between them.
+
+            - key: fps_limit_method
+              label: Limiter method
+              kind: choice
+              choices: [early, late]
+              description: Late limits after rendering for lower latency; early is smoother.
+
+            - key: vsync
+              label: Vulkan present mode
+              kind: choice
+              choices: ["0", "1", "2", "3"]
+              description: 0 off, 1 mailbox, 2 relaxed, 3 on.
+
+        - name: Metrics
+          options:
+            - key: fps
+              label: Frame rate
+            - key: frametime
+              label: Frame time
+            - key: frame_timing
+              label: Frame time graph
+            - key: gpu_stats
+              label: GPU load
+            - key: cpu_stats
+              label: CPU load
+            - key: gpu_temp
+              label: GPU temperature
+            - key: cpu_temp
+              label: CPU temperature
+            - key: vram
+              label: Video memory
+            - key: ram
+              label: System memory
+            - key: gpu_name
+              label: GPU name
+
+        - name: Appearance
+          options:
+            - key: preset
+              label: Preset
+              kind: choice
+              choices: ["0", "1", "2", "3", "4"]
+              description: 0 hides the overlay entirely; 4 shows everything.
+
+            - key: position
+              label: Position
+              kind: choice
+              choices: [top-left, top-right, bottom-left, bottom-right, top-center]
+
+            - key: font_size
+              label: Font size
+              kind: number
+              placeholder: "24"
+
+            - key: background_alpha
+              label: Background opacity
+              kind: text
+              placeholder: "0.5"
+              description: Between 0 and 1.
+
+            - key: toggle_hud
+              label: Toggle key
+              kind: text
+              placeholder: Shift_R+F12
+
+            - key: hud_compact
+              label: Compact layout
+
+            - key: no_display
+              label: Start hidden
+              description: Collects data but shows nothing until the toggle key is pressed.

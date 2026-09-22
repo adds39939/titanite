@@ -1,0 +1,31 @@
+<div class="backdrop" @onclick="Cancel" @onkeydown="OnKeyDown">
+    <div class="panel" role="dialog" aria-modal="true" aria-label="@Title" @onclick:stopPropagation="true">
+        <h2 class="title">@Title</h2>
+
+        <LaunchOptionsPreview Options="@Options" Saved="@Saved"/>
+
+        @if (AlsoChanging.Count > 0)
+        {
+            <div class="also">
+                <span class="also-label">And</span>
+                <ul class="also-list">
+                    @foreach (var change in AlsoChanging)
+                    {
+                        <li @key="change">@change</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <div class="actions">
+            <Button Disabled="@IsBusy" OnClick="Cancel">Cancel</Button>
+
+            <Button Variant="ButtonVariant.Primary"
+                    Disabled="@IsBusy"
+                    Autofocus="true"
+                    OnClick="Confirm">
+                @(IsBusy ? "Saving…" : "Save")
+            </Button>
+        </div>
+    </div>
+</div>

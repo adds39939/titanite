@@ -1,0 +1,171 @@
+.proton {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    max-width: 1180px;
+    margin: 28px auto;
+}
+
+.proton-header {
+    flex: none;
+}
+
+.proton-body {
+    flex: 1;
+    min-height: 0;
+    margin-top: 14px;
+    padding: 4px 0;
+    border-top: 1px solid var(--border);
+    overflow-y: auto;
+}
+
+.proton-header h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.proton-subtitle {
+    margin: 2px 0 0;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.proton-message {
+    margin: 10px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.is-error {
+    color: var(--danger);
+}
+
+.builds {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 18px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.build {
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-1);
+}
+
+.build-heading {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.build-name {
+    margin: 0;
+    min-width: 0;
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.badge {
+    flex: none;
+    padding: 2px 8px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface-2);
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.badge-default {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--text);
+}
+
+.build-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 4px 20px;
+    margin: 10px 0 0;
+}
+
+.fact-wide {
+    grid-column: 1 / -1;
+}
+
+.fact dt {
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+.fact dd {
+    margin: 1px 0 0;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fact code {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+}
+
+.inferred {
+    margin-left: 6px;
+    color: var(--warning);
+    font-size: 11px;
+    cursor: help;
+}
+
+.build-games {
+    margin: 10px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.build-support {
+    margin: 3px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.missing {
+    margin: 18px 0 0;
+    padding: 12px 16px;
+    border: 1px solid var(--warning);
+    border-radius: 10px;
+    background: var(--warning-soft);
+}
+
+.missing-title {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.missing-note {
+    margin: 4px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.missing-list {
+    margin: 8px 0 0;
+    padding-left: 18px;
+    font-size: 12px;
+}
+
+.missing-list code {
+    font-family: ui-monospace, monospace;
+}

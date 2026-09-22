@@ -1,0 +1,106 @@
+<section class="library">
+    <header class="library-header">
+        <div>
+            <h1>Library</h1>
+            <p class="library-subtitle">@Presenter.Subtitle</p>
+        </div>
+
+        <Button Disabled="@Presenter.IsLoading" OnClick="() => Presenter.RescanAsync()">
+            @(Presenter.IsLoading ? "Scanning…" : "Rescan")
+        </Button>
+    </header>
+
+    <div class="library-filters">
+        <input class="search"
+               type="search"
+               placeholder="Search installed games…"
+               value="@Presenter.SearchTerm"
+               @oninput="OnSearchChanged"/>
+
+        <SingleSelectDropdown Label="@Presenter.SortOrder.Title()">
+            @foreach (var order in SortOrders)
+            {
+                <SingleSelectDropdownItem IsSelected="@(Presenter.SortOrder == order)"
+                                          OnSelect="() => Presenter.SortByAsync(order)"
+                                          @key="order">
+                    @order.Title()
+                </SingleSelectDropdownItem>
+            }
+        </SingleSelectDropdown>
+
+        <MultiSelectDropdown Label="Filters">
+            <Icon>
+                <FilterIcon/>
+            </Icon>
+            <ChildContent>
+                @foreach (var filter in LibraryFilters.All)
+                {
+                    <MultiSelectDropdownOption IsChecked="@Presenter.IsShowing(filter)"
+                                               IsCheckedChanged="isOn => Presenter.ShowAsync(filter, isOn)"
+                                               @key="filter">
+                        @filter.Title()
+                    </MultiSelectDropdownOption>
+                }
+            </ChildContent>
+        </MultiSelectDropdown>
+
+        <div class="view-toggle" role="group" aria-label="View mode">
+            @foreach (var mode in ViewModes)
+            {
+                <button type="button"
+                        class="view-button @(Presenter.ViewMode == mode ? "is-active" : string.Empty)"
+                        aria-pressed="@(Presenter.ViewMode == mode)"
+                        aria-label="@mode"
+                        title="@mode"
+                        @key="mode"
+                        @onclick="() => Presenter.ShowAsAsync(mode)">
+                    @if (mode == LibraryViewMode.List)
+                    {
+                        <ListIcon/>
+                    }
+                    else
+                    {
+                        <GridIcon/>
+                    }
+                </button>
+            }
+        </div>
+    </div>
+
+    @if (Presenter.IsLoading)
+    {
+        <p class="library-message">Scanning game libraries…</p>
+    }
+    else if (Presenter.LoadError is not null)
+    {
+        <p class="library-message library-message-error">@Presenter.LoadError</p>
+    }
+    else if (Presenter.VisibleGames.Count == 0)
+    {
+        <p class="library-message">@Presenter.EmptyMessage</p>
+    }
+    else if (Presenter.ViewMode == LibraryViewMode.Grid)
+    {
+        <ul class="game-grid">
+            @foreach (var game in Presenter.VisibleGames)
+            {
+                <GameGridCard Entry="@game"
+                              PresetName="@Presenter.PresetFor(game)"
+                              OnSelect="Select"
+                              @key="game.Id"/>
+            }
+        </ul>
+    }
+    else
+    {
+        <ul class="game-list">
+            @foreach (var game in Presenter.VisibleGames)
+            {
+                <GameListCard Entry="@game"
+                              PresetName="@Presenter.PresetFor(game)"
+                              OnSelect="Select"
+                              @key="game.Id"/>
+            }
+        </ul>
+    }
+</section>

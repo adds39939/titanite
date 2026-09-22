@@ -1,0 +1,79 @@
+.preview {
+    margin-top: 16px;
+}
+
+.preview-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.preview-label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.legend {
+    display: flex;
+    gap: 10px;
+}
+
+.legend-item {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.legend-added {
+    color: var(--added);
+}
+
+.legend-removed {
+    color: var(--danger);
+}
+
+.raw {
+    margin: 0;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-1);
+    color: var(--text-muted);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 12px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.preview-empty {
+    margin: 0;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-1);
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.token {
+    border-radius: 3px;
+}
+
+.token-added {
+    background: var(--added-soft);
+    color: var(--added);
+}
+
+.token-removed {
+    background: var(--removed-soft);
+    color: var(--danger);
+    text-decoration: line-through;
+}

@@ -1,0 +1,60 @@
+@if (Topology.IsEmpty)
+{
+    <p class="empty">The processor topology could not be read, so only a manual mask is offered.</p>
+}
+else
+{
+    <p class="summary">
+        @Topology.AllThreads.Count threads across @Topology.PhysicalCoreThreads.Count physical cores.
+        @if (Topology.HasAsymmetricCache)
+        {
+            <text>
+                The cache groups are not the same size, so which one a game runs on matters.
+            </text>
+        }
+    </p>
+
+    <div class="presets">
+        @foreach (var preset in Presets)
+        {
+            <button type="button"
+                    class="preset @(IsSelected(preset) ? "is-active" : string.Empty)"
+                    @key="preset.Label"
+                    @onclick="() => Apply(preset.Mask)">
+                <span class="preset-label">@preset.Label</span>
+                @if (preset.Detail is not null)
+                {
+                    <span class="preset-detail">@preset.Detail</span>
+                }
+                <code class="preset-mask">@(preset.Mask ?? "not pinned")</code>
+            </button>
+        }
+    </div>
+
+    <CollapsibleGroup Name="Threads" SetCount="@SelectedThreads.Count">
+        <div class="threads">
+            @foreach (var thread in Topology.AllThreads)
+            {
+                <label class="thread @(SelectedThreads.Contains(thread) ? "is-on" : string.Empty)" @key="thread">
+                    <input type="checkbox"
+                           checked="@SelectedThreads.Contains(thread)"
+                           @onchange="@(args => ToggleThread(thread, args.Value is true))"/>
+                    <span>@thread</span>
+                </label>
+            }
+        </div>
+    </CollapsibleGroup>
+}
+
+<CollapsibleGroup Name="Mask">
+    <p class="group-note">
+        Passed to <code>taskset -c</code>. Clearing it removes the pinning entirely.
+    </p>
+
+    <input class="mask"
+           type="text"
+           spellcheck="false"
+           placeholder="0-7,16-23"
+           value="@Value"
+           @onchange="OnMaskChanged"/>
+</CollapsibleGroup>

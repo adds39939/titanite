@@ -1,0 +1,51 @@
+.group {
+    margin: 20px 0 0;
+}
+
+.group-summary {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 0;
+    border-radius: 6px;
+    color: var(--text-muted);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+}
+
+.group-summary::-webkit-details-marker {
+    display: none;
+}
+
+.group-summary:hover {
+    color: var(--text);
+}
+
+.group-summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.group-name {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.group-count {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+}
+
+.group-marker {
+    display: flex;
+    flex: none;
+    transition: transform 120ms ease;
+}
+
+.group:not([open]) .group-marker {
+    transform: rotate(-90deg);
+}

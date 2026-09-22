@@ -1,0 +1,9 @@
+@if (PresetName is { Length: > 0 } preset)
+{
+    <span class="tag tag-preset" title="@($"Uses the {preset} preset")">@preset</span>
+}
+
+@if (!Entry.IsFullyInstalled)
+{
+    <span class="tag tag-warning">Incomplete</span>
+}

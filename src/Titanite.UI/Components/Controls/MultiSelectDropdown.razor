@@ -1,0 +1,29 @@
+<div class="@DropdownClass" @onkeydown="OnKeyDown" @onkeydown:stopPropagation="@IsOpen">
+    <Button Variant="@Variant"
+            Size="@Size"
+            Disabled="@Disabled"
+            OnClick="Toggle"
+            aria-haspopup="menu"
+            aria-expanded="@(IsOpen ? "true" : "false")"
+            aria-label="@Label"
+            title="@Label">
+        @if (Icon is null)
+        {
+            <span class="label">@Label</span>
+            <ChevronIcon/>
+        }
+        else
+        {
+            @Icon
+        }
+    </Button>
+
+    @if (IsOpen)
+    {
+        <div class="scrim" @onclick="Close"></div>
+
+        <div class="menu" role="menu" aria-label="@Label">
+            @ChildContent
+        </div>
+    }
+</div>

@@ -1,0 +1,67 @@
+.settings {
+    flex: none;
+    width: 100%;
+    max-width: 1180px;
+    margin: 28px auto;
+}
+
+.settings-header h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.settings-subtitle {
+    margin: 2px 0 0;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.setting {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 32px;
+    margin-top: 24px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-1);
+}
+
+.setting-label h2 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.setting-label p {
+    margin: 3px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+.setting-value {
+    min-width: 0;
+    text-align: right;
+}
+
+.setting-path {
+    margin: 0;
+    color: var(--text-muted);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+.setting-missing {
+    margin: 0;
+    color: var(--warning);
+    font-size: 13px;
+}
+
+.settings-note {
+    margin: 24px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+}

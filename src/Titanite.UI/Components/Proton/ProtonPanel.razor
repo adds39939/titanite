@@ -1,0 +1,96 @@
+<section class="proton">
+    <header class="proton-header">
+        <h1>Proton</h1>
+        <p class="proton-subtitle">
+            The compatibility builds installed on this machine, and the games pointed at them.
+        </p>
+    </header>
+
+    <div class="proton-body">
+        @if (IsLoading)
+        {
+            <p class="proton-message">Reading installed Proton builds…</p>
+        }
+        else if (LoadError is not null)
+        {
+            <p class="proton-message is-error">@LoadError</p>
+        }
+        else if (Catalogue.Builds.Count == 0)
+        {
+            <p class="proton-message">
+                No Proton builds are installed. Steam installs one the first time it runs a Windows
+                game, or you can choose one under Steam Play in its settings.
+            </p>
+        }
+        else
+        {
+            <p class="proton-message">@DefaultSummary</p>
+
+            <ul class="builds">
+                @foreach (var build in Catalogue.Builds)
+                {
+                    <li class="build" @key="build.Name">
+                        <div class="build-heading">
+                            <h2 class="build-name" title="@build.DisplayName">@build.DisplayName</h2>
+                            <span class="badge">@KindLabel(build)</span>
+
+                            @if (IsDefault(build))
+                            {
+                                <span class="badge badge-default">Default</span>
+                            }
+                        </div>
+
+                        <dl class="build-facts">
+                            <div class="fact">
+                                <dt>Version</dt>
+                                <dd>@(build.Version ?? "Not reported")</dd>
+                            </div>
+
+                            <div class="fact">
+                                <dt>Steam calls it</dt>
+                                <dd>
+                                    <code>@build.Name</code>
+
+                                    @if (build.NameIsDerived)
+                                    {
+                                        <span class="inferred"
+                                              title="Steam's compatibility log no longer names this build, so the name was inferred from how the build is displayed.">
+                                            inferred
+                                        </span>
+                                    }
+                                </dd>
+                            </div>
+
+                            <div class="fact fact-wide">
+                                <dt>Path</dt>
+                                <dd title="@build.InstallPath">@PathDisplay.Abbreviate(build.InstallPath)</dd>
+                            </div>
+                        </dl>
+
+                        <p class="build-games">@GamesSummary(build)</p>
+                        <p class="build-support">@SupportSummary(build)</p>
+                    </li>
+                }
+            </ul>
+
+            @if (MissingToolNames.Count > 0)
+            {
+                <section class="missing">
+                    <h2 class="missing-title">Pointed at builds that are not installed</h2>
+
+                    <p class="missing-note">
+                        Steam is still holding these choices. A game left on one will not start
+                        until it is given a build that exists.
+                    </p>
+
+                    <ul class="missing-list">
+                        @foreach (var toolName in MissingToolNames)
+                        {
+                            <li @key="toolName"><code>@toolName</code> — @MissingSummary(toolName)</li>
+                        }
+                    </ul>
+                </section>
+            }
+        }
+    </div>
+</section>

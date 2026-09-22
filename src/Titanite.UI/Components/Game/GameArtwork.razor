@@ -1,0 +1,12 @@
+@if (Source is not null && !HasFailed)
+{
+    <img class="artwork artwork-@ShapeClass"
+         src="@Source"
+         alt=""
+         loading="lazy"
+         @onerror="OnLoadFailed"/>
+}
+else
+{
+    <span class="artwork artwork-@ShapeClass artwork-fallback" aria-hidden="true">@Initials</span>
+}

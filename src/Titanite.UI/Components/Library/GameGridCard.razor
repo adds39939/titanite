@@ -1,0 +1,18 @@
+<li class="game-tile">
+    <GameArtwork GameId="@Entry.Id" Name="@Entry.Name" Kind="GameArtworkKind.Capsule"/>
+
+    <div class="tile-tags">
+        <GameTags Entry="@Entry" PresetName="@PresetName"/>
+    </div>
+
+    <div class="tile-body">
+        <h2 class="tile-title" title="@Entry.Name">@Entry.Name</h2>
+        <p class="tile-meta">
+            @FileSizeDisplay.Format(Entry.SizeOnDisk) · @LastPlayedDisplay.Format(Entry.LastPlayed)
+        </p>
+    </div>
+
+    <button type="button" class="card-overlay" @onclick="Select">
+        <span class="sr-only">Configure @Entry.Name</span>
+    </button>
+</li>

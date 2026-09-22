@@ -1,0 +1,124 @@
+.library {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    max-width: 1180px;
+    margin: 28px auto;
+}
+
+.library-header {
+    display: flex;
+    flex: none;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.library-header h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.library-subtitle {
+    margin: 2px 0 0;
+    color: var(--text-muted);
+    font-size: 13px;
+}
+
+.library-filters {
+    display: flex;
+    flex: none;
+    align-items: stretch;
+    gap: 8px;
+    margin: 20px 0 24px;
+}
+
+.library-message {
+    flex: none;
+    padding: 40px 0;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.library-message-error {
+    color: var(--danger);
+}
+
+.search {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-1);
+    color: var(--text);
+    font: inherit;
+}
+
+.search::placeholder {
+    color: var(--text-muted);
+}
+
+.search:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.view-toggle {
+    display: flex;
+    flex: none;
+    padding: 2px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-1);
+}
+
+.view-button {
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-muted);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 120ms ease, color 120ms ease;
+}
+
+.view-button:hover {
+    color: var(--text);
+}
+
+.view-button.is-active {
+    background: var(--surface-2);
+    color: var(--text);
+}
+
+.game-grid,
+.game-list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    margin: 0;
+    padding: 3px;
+    list-style: none;
+}
+
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+    grid-auto-rows: min-content;
+    gap: 18px;
+}
+
+.game-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}

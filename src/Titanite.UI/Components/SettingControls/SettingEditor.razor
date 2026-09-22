@@ -1,0 +1,97 @@
+<div class="setting @(IsIgnored ? "is-ignored" : string.Empty) @(Definition.Compound is null ? string.Empty : "is-compound")">
+    <div class="setting-label">
+        <span class="setting-name">@Definition.Label</span>
+        @if (ShowDescription && Definition.Description is not null)
+        {
+            <span class="setting-description">@Definition.Description</span>
+        }
+        <code class="setting-variable">@Definition.Variable</code>
+
+        @if (IsIgnored)
+        {
+            <span class="setting-ignored">
+                @(BuildName ?? "This Proton build") does not read this variable, so setting it has
+                no effect.
+            </span>
+        }
+    </div>
+
+    @if (Definition.Compound is { } compound)
+    {
+        <div class="setting-compound">
+            <CompoundEditor Schema="@compound"
+                            Value="@Value"
+                            ValueChanged="@ValueChanged"
+                            SetOnly="@SetOnly"
+                            ShowDescriptions="@ShowDescription"/>
+        </div>
+    }
+    else
+    {
+    <div class="setting-control">
+        @switch (Definition.Kind)
+        {
+            case SettingKind.Toggle:
+                <label class="switch">
+                    <input type="checkbox" checked="@IsOn" @onchange="OnToggled"/>
+                    <span>@(IsOn ? "On" : "Off")</span>
+                </label>
+
+                break;
+
+            case SettingKind.Choice:
+                <span class="select-shell">
+                    <select class="control" value="@(Value ?? string.Empty)" @onchange="OnChoicePicked">
+                        <option value="">Not set</option>
+                        @foreach (var choice in Choices)
+                        {
+                            <option value="@choice" @key="choice">@choice</option>
+                        }
+                    </select>
+
+                    <ChevronIcon/>
+                </span>
+
+                break;
+
+            case SettingKind.Number:
+                <input class="control"
+                       type="number"
+                       placeholder="@Definition.Placeholder"
+                       value="@(Value ?? string.Empty)"
+                       @onchange="OnTextChanged"/>
+
+                break;
+
+            case SettingKind.Text when Definition.AllowEmpty:
+                <input class="control"
+                       type="text"
+                       spellcheck="false"
+                       placeholder="@(Value is null ? Definition.Placeholder : "Set, empty")"
+                       value="@(Value ?? string.Empty)"
+                       @onchange="OnEmptiableTextChanged"/>
+
+                @if (Value is null)
+                {
+                    <Button Variant="ButtonVariant.Quiet" Size="ButtonSize.Small" OnClick="SetEmpty">Set empty</Button>
+                }
+                else
+                {
+                    <Button Variant="ButtonVariant.Quiet" Size="ButtonSize.Small" OnClick="Remove">Remove</Button>
+                }
+
+                break;
+
+            default:
+                <input class="control"
+                       type="text"
+                       spellcheck="false"
+                       placeholder="@Definition.Placeholder"
+                       value="@(Value ?? string.Empty)"
+                       @onchange="OnTextChanged"/>
+
+                break;
+        }
+    </div>
+    }
+</div>

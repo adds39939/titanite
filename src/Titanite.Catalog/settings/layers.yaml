@@ -1,0 +1,40 @@
+id: layers
+title: Vulkan layers
+order: 13
+
+groups:
+  - name: Latency
+    settings:
+      - variable: LOW_LATENCY_LAYER
+        label: Low latency layer
+        description: Submits each frame as late as it can, so input is read later.
+        kind: toggle
+
+      - variable: DISABLE_LOW_LATENCY_LAYER
+        label: Disable the low latency layer
+        description: Turns it off again where something else has switched it on.
+        kind: toggle
+
+      - variable: DXVK_NVAPI_VKREFLEX
+        label: Reflex layer
+        description: Backs NVIDIA Reflex with a Vulkan layer. NVIDIA drivers only.
+        kind: toggle
+
+  - name: Shader hacks
+    settings:
+      - variable: PYROVEIL
+        label: Enable Pyroveil
+        description: Rewrites a game's shaders at load, to fix a title broken on one driver.
+        kind: toggle
+
+      - variable: PYROVEIL_CONFIG
+        label: Pyroveil configuration
+        description: One of the build's own hacks by name, or a path to a pyroveil.json.
+        placeholder: ac-shadows-nvidia-570-stable
+
+  - name: Capture
+    settings:
+      - variable: OBS_VKCAPTURE
+        label: OBS game capture
+        description: Hands frames to OBS's capture layer. Needs obs-vkcapture installed.
+        kind: toggle

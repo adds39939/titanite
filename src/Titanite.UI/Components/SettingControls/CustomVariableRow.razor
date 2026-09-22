@@ -1,0 +1,12 @@
+<div class="row">
+    <code class="name">@Name</code>
+
+    <input class="value"
+           type="text"
+           spellcheck="false"
+           aria-label="@($"Value of {Name}")"
+           value="@Value"
+           @onchange="@(args => ValueChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty))"/>
+
+    <Button Variant="ButtonVariant.Quiet" OnClick="OnRemove">Remove</Button>
+</div>

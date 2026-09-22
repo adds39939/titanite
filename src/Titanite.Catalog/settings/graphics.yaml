@@ -1,0 +1,373 @@
+id: graphics
+title: Graphics
+order: 8
+
+groups:
+  - name: Renderer
+    settings:
+      - variable: PROTON_USE_WINED3D
+        label: Use wined3d instead of DXVK
+        description: Translates Direct3D to OpenGL rather than Vulkan. Slower, occasionally right.
+        kind: toggle
+
+      - variable: PROTON_NO_D3D11
+        label: Hide Direct3D 11
+        description: Removes d3d11, so a game with several renderers falls back to an older one.
+        kind: toggle
+
+      - variable: PROTON_NO_D3D10
+        label: Hide Direct3D 10
+        description: The same, for Direct3D 10.
+        kind: toggle
+
+      - variable: PROTON_DXVK_D3D8
+        label: Direct3D 8 through DXVK
+        description: Runs Direct3D 8 games on DXVK's own d3d8 rather than Wine's.
+        kind: toggle
+
+      - variable: PROTON_USE_D7VK
+        label: Direct3D 7 through d7vk
+        description: Runs Direct3D 7 and earlier on Vulkan rather than Wine's own renderer.
+        kind: toggle
+        protonBuilds: ["^GE-Proton"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_D7VK_DDRAW
+        label: DirectDraw through d7vk
+        description: Sends DirectDraw through d7vk too, for the oldest games of all.
+        kind: toggle
+        protonBuilds: ["^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_DXVK_SAREK
+        label: Use DXVK-Sarek
+        description: The DXVK fork that still supports Vulkan 1.1 hardware.
+        kind: toggle
+        protonBuilds: ["^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_DXVK_LOWLATENCY
+        label: DXVK low latency mode
+        description: Trades shader compilation stutter for a shorter frame queue.
+        kind: toggle
+        protonBuilds: ["^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_VKD3D_LOWLATENCY
+        label: VKD3D low latency mode
+        description: The same trade, applied to Direct3D 12 games.
+        kind: toggle
+        protonBuilds: ["^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+      - variable: PROTON_LOCAL_SHADER_CACHE
+        label: Per-game shader cache
+        description: Keeps this game's shaders beside its prefix, not in Steam's shared cache.
+        kind: toggle
+        protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+        restrictToProtonBuild: true
+
+  - name: DXVK
+    settings:
+      - variable: DXVK_CONFIG
+        label: DXVK options
+        description: Semicolon-separated dxvk.conf settings, applied without writing a file.
+        placeholder: dxgi.maxFrameRate=120;dxvk.tearFree=True
+        compound:
+          separator: ";"
+          assignment: "="
+          groups:
+            - name: Frame pacing
+              options:
+                - key: dxgi.maxFrameRate
+                  label: Frame rate cap
+                  kind: number
+                  placeholder: "120"
+                  description: Caps Direct3D 10 and 11 games. 0 uncaps, -1 lets the game decide.
+
+                - key: d3d9.maxFrameRate
+                  label: Frame rate cap (Direct3D 9)
+                  kind: number
+                  placeholder: "120"
+
+                - key: dxgi.syncInterval
+                  label: Presentation interval
+                  kind: number
+                  placeholder: "1"
+                  description: 0 is no vertical sync, 1 waits for each refresh, 2 for every second.
+
+                - key: d3d9.presentInterval
+                  label: Presentation interval (Direct3D 9)
+                  kind: number
+                  placeholder: "1"
+
+                - key: dxgi.maxFrameLatency
+                  label: Frame latency
+                  kind: number
+                  placeholder: "1"
+                  description: How many frames may be queued ahead. 1 is the lowest latency.
+
+                - key: dxvk.tearFree
+                  label: Tear-free presentation
+                  kind: choice
+                  choices: [Auto, "True", "False"]
+                  description: True never tears, False allows it, Auto follows the game.
+
+                - key: dxvk.latencySleep
+                  label: Latency sleep
+                  kind: choice
+                  choices: [Auto, "True", "False"]
+                  description: Delays the start of each frame so input is read later.
+
+                - key: dxvk.latencyTolerance
+                  label: Latency tolerance
+                  kind: number
+                  placeholder: "1000"
+                  description: How much slack latency sleep leaves itself, in microseconds.
+
+            - name: Image quality
+              options:
+                - key: d3d11.samplerAnisotropy
+                  label: Anisotropic filtering
+                  kind: number
+                  placeholder: "16"
+                  description: Forces anisotropic filtering on every texture. -1 leaves it alone.
+
+                - key: d3d9.samplerAnisotropy
+                  label: Anisotropic filtering (Direct3D 9)
+                  kind: number
+                  placeholder: "16"
+
+                - key: d3d11.samplerLodBias
+                  label: Mipmap bias
+                  kind: text
+                  placeholder: "-0.5"
+                  description: Negative sharpens textures at a cost in shimmer.
+
+                - key: d3d9.samplerLodBias
+                  label: Mipmap bias (Direct3D 9)
+                  kind: text
+                  placeholder: "-0.5"
+
+                - key: dxgi.enableHDR
+                  label: Offer HDR swapchains
+                  kind: choice
+                  choices: ["True", "False"]
+
+            - name: Device
+              options:
+                - key: dxvk.deviceFilter
+                  label: Device filter
+                  kind: text
+                  placeholder: NVIDIA GeForce RTX
+                  description: Substring of the GPU name to use, for a machine with more than one.
+
+                - key: dxvk.hideIntegratedGraphics
+                  label: Hide integrated graphics
+                  kind: choice
+                  choices: ["True", "False"]
+                  description: Keeps a game from picking the iGPU on a laptop with both.
+
+                - key: dxgi.customVendorId
+                  label: Reported vendor id
+                  kind: text
+                  placeholder: "10de"
+                  description: Hexadecimal, no prefix — 10de NVIDIA, 1002 AMD, 8086 Intel.
+
+                - key: dxgi.customDeviceId
+                  label: Reported device id
+                  kind: text
+                  placeholder: "2482"
+
+                - key: dxgi.maxDeviceMemory
+                  label: Reported video memory
+                  kind: number
+                  placeholder: "8192"
+                  description: In megabytes, for a game that sizes its budget from what it is told.
+
+            - name: Compilation
+              options:
+                - key: dxvk.numCompilerThreads
+                  label: Compiler threads
+                  kind: number
+                  placeholder: "8"
+                  description: 0 lets DXVK choose from the processor it finds.
+
+                - key: dxvk.enableGraphicsPipelineLibrary
+                  label: Graphics pipeline library
+                  kind: choice
+                  choices: [Auto, "True", "False"]
+                  description: Compiles shaders ahead of the draw, removing first-run stutter.
+
+                - key: dxvk.maxMemoryBudget
+                  label: Memory budget
+                  kind: number
+                  placeholder: "0"
+                  description: Caps what DXVK will allocate, in megabytes. 0 leaves it to DXVK.
+
+      - variable: DXVK_CONFIG_FILE
+        label: DXVK config file
+        description: Path to a dxvk.conf holding per-game renderer tweaks.
+        placeholder: /home/you/dxvk.conf
+
+      - variable: DXVK_FRAME_RATE
+        label: Frame rate cap
+        description: Limits frames per second inside DXVK. 0 uncaps. Prefer the option above.
+        kind: number
+        placeholder: "144"
+        protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+
+      - variable: DXVK_FILTER_DEVICE_NAME
+        label: DXVK device
+        description: The GPU DXVK should render on, named as the driver reports it.
+        placeholder: NVIDIA GeForce RTX 4080
+
+      - variable: DXVK_SHADER_CACHE_PATH
+        label: DXVK shader cache
+        description: Where DXVK keeps its compiled shaders. none turns the cache off.
+        placeholder: /home/you/.cache/dxvk
+
+      - variable: DXVK_HUD
+        label: DXVK HUD
+        description: DXVK's own overlay, separate from MangoHud.
+        placeholder: fps,frametimes
+        compound:
+          groups:
+            - name: Metrics
+              options:
+                - key: fps
+                  label: Frame rate
+                - key: frametimes
+                  label: Frame time graph
+                - key: gpuload
+                  label: GPU load
+                - key: memory
+                  label: Memory use
+                - key: devinfo
+                  label: Device and driver
+                - key: version
+                  label: DXVK version
+                - key: api
+                  label: Direct3D feature level
+                - key: submissions
+                  label: Command submissions
+                - key: drawcalls
+                  label: Draw calls
+                - key: pipelines
+                  label: Pipelines compiled
+                - key: descriptors
+                  label: Descriptor pools
+                - key: compiler
+                  label: Shader compiler activity
+
+            - name: Appearance
+              options:
+                - key: full
+                  label: Show everything
+                  description: Every element at once, in place of picking them individually.
+                - key: scale
+                  label: Scale
+                  kind: text
+                  placeholder: "1.5"
+                - key: opacity
+                  label: Opacity
+                  kind: text
+                  placeholder: "0.8"
+                  description: Between 0 and 1.
+
+  - name: VKD3D-Proton
+    settings:
+      - variable: VKD3D_CONFIG
+        label: VKD3D options
+        description: Comma-separated VKD3D-Proton flags.
+        placeholder: dxr12
+        compound:
+          groups:
+            - name: Features
+              options:
+                - key: dxr12
+                  label: DirectX Raytracing 1.2
+                  description: Opts into the DXR 1.2 feature set rather than stopping at 1.1.
+
+                - key: nodxr
+                  label: Disable ray tracing
+                  description: Hides DXR from the game entirely.
+
+                - key: enable_experimental_features
+                  label: Experimental features
+                  description: Exposes what VKD3D-Proton has not finished, including work graphs.
+
+            - name: Memory
+              options:
+                - key: no_upload_hvv
+                  label: No host-visible video memory
+                  description: Keeps uploads out of shared CPU/GPU memory. For a small BAR.
+
+                - key: force_host_cached
+                  label: Cached host memory
+                  description: Caches CPU reads of GPU memory, for stuttering read-back.
+
+                - key: small_vram_rebar
+                  label: Small resizable BAR
+                  description: Assumes a narrow resizable BAR window and allocates around it.
+
+                - key: no_gpu_upload_heap
+                  label: No GPU upload heap
+                  description: Hides the upload heap from a game whose use of it goes wrong.
+
+            - name: Behaviour
+              options:
+                - key: single_queue
+                  label: Single queue
+                  description: One Vulkan queue rather than three, for a game synchronising wrongly.
+
+                - key: skip_application_workarounds
+                  label: Skip application workarounds
+                  description: Runs without the per-game fixes VKD3D-Proton would apply.
+
+                - key: skip_driver_workarounds
+                  label: Skip driver workarounds
+                  description: The same, for the fixes aimed at a particular driver.
+
+                - key: no_invariant_position
+                  label: No invariant position
+                  description: Drops identical vertex positions between passes. Risks z-fighting.
+
+                - key: global_pipeline_cache
+                  label: Global pipeline cache
+                  description: One shared pipeline cache rather than one per pipeline library.
+
+                - key: descriptor_heap
+                  label: Descriptor heaps
+                  description: Binds through descriptor sets rather than descriptor buffers.
+
+      - variable: VKD3D_FEATURE_LEVEL
+        label: VKD3D feature level
+        description: Caps the Direct3D 12 feature level reported to the game.
+        placeholder: "12_1"
+
+      - variable: VKD3D_SHADER_MODEL
+        label: VKD3D shader model
+        description: Caps the shader model reported to the game.
+        placeholder: "6_6"
+
+      - variable: VKD3D_FRAME_RATE
+        label: Frame rate cap (Direct3D 12)
+        description: Limits frames per second inside VKD3D-Proton. Read by every build here.
+        kind: number
+        placeholder: "144"
+
+      - variable: VKD3D_FILTER_DEVICE_NAME
+        label: VKD3D device
+        description: The GPU VKD3D-Proton should render on, named as the driver reports it.
+        placeholder: NVIDIA GeForce RTX 4080
+
+      - variable: VKD3D_DISABLE_EXTENSIONS
+        label: Disabled Vulkan extensions
+        description: Vulkan extensions to hide, for finding which one a driver has wrong.
+        placeholder: VK_NV_device_generated_commands
+
+      - variable: VKD3D_SHADER_CACHE_PATH
+        label: VKD3D shader cache
+        description: Where VKD3D-Proton keeps its compiled pipelines.
+        placeholder: /home/you/.cache/vkd3d

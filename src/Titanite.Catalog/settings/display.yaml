@@ -1,0 +1,55 @@
+id: display
+title: Display
+order: 5
+
+settings:
+  - variable: PROTON_ENABLE_WAYLAND
+    label: Run natively on Wayland
+    description: Skips XWayland. Required before HDR will do anything.
+    kind: toggle
+    protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+    restrictToProtonBuild: true
+
+  - variable: PROTON_USE_WAYLAND
+    label: Run natively on Wayland (older name)
+    description: The older spelling of the same switch. Every build reads both.
+    kind: toggle
+    protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+    restrictToProtonBuild: true
+    hideUnlessSet: true
+
+  - variable: PROTON_WAYLAND_MONITOR
+    label: Primary monitor
+    description: The connector the game treats as its primary. Wayland only.
+    placeholder: DP-1
+    protonBuilds: ["^GE-Proton"]
+    restrictToProtonBuild: true
+
+  - variable: PROTON_NO_WM_DECORATION
+    label: No window decorations
+    description: Drops the title bar and border the desktop draws around the game.
+    kind: toggle
+    protonBuilds: ["^GE-Proton", "^(proton-)?cachyos"]
+    restrictToProtonBuild: true
+
+  - variable: PROTON_LIMIT_RESOLUTIONS
+    label: Limit the resolution list
+    description: Caps how many display modes are offered, for an old fixed-size menu.
+    kind: number
+    placeholder: "32"
+
+  - variable: WINE_DISABLE_FULLSCREEN_HACK
+    label: Disable the fullscreen hack
+    description: Really switches the display mode rather than faking it and scaling.
+    kind: toggle
+
+  - variable: DXVK_FORCE_WINDOWED
+    label: Force windowed
+    description: Presents into a window whatever the game asked for.
+    kind: toggle
+
+  - variable: SDL_VIDEO_DRIVER
+    label: SDL video driver
+    description: Which windowing system an SDL game talks to. Read by the game, not Proton.
+    kind: choice
+    choices: ["wayland", "x11"]

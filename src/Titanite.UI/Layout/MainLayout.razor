@@ -1,0 +1,26 @@
+@inherits LayoutComponentBase
+
+<div class="app-shell">
+    <header class="titlebar">
+        <span class="wordmark">
+            <img class="wordmark-icon" src="titanite-icon.png" alt="" aria-hidden="true"/>
+            <strong>Titanite</strong>
+        </span>
+    </header>
+
+    <nav class="nav">
+        @foreach (var item in NavItems)
+        {
+            <NavLink class="@TabClass(item)"
+                     href="@item.Path"
+                     Match="@item.Match"
+                     @key="item.Path">
+                @item.Label
+            </NavLink>
+        }
+    </nav>
+
+    <main class="content">
+        @Body
+    </main>
+</div>

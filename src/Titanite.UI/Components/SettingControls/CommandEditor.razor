@@ -1,0 +1,79 @@
+@if (ShowsToggle)
+{
+    <CommandToggle Label="@Command.Label"
+                   Command="@Command.Command"
+                   Description="@Command.Description"
+                   ShowDescription="@ShowDescriptions"
+                   IsOn="@IsOn"
+                   IsOnChanged="OnCommandToggled"/>
+}
+
+@foreach (var group in ListedGroups)
+{
+    <CollapsibleGroup Name="@group.Name" SetCount="@SetCountIn(group)" @key="group.Flags[0].Flag">
+        @foreach (var flag in group.Flags)
+        {
+            <div class="flag" @key="flag.Flag">
+                <div class="flag-label">
+                    <span class="flag-name">@flag.Label</span>
+                    @if (ShowDescriptions && flag.Description is not null)
+                    {
+                        <span class="flag-description">@flag.Description</span>
+                    }
+                    <code class="flag-token">@flag.Flag</code>
+                </div>
+
+                <div class="flag-control">
+                    @switch (flag.Kind)
+                    {
+                        case SettingKind.Toggle:
+                            <label class="switch">
+                                <input type="checkbox"
+                                       checked="@Options.HasFlag(Command, flag)"
+                                       @onchange="@(args => ToggleFlag(flag, args.Value is true))"/>
+                                <span>@(Options.HasFlag(Command, flag) ? "On" : "Off")</span>
+                            </label>
+
+                            break;
+
+                        case SettingKind.Choice:
+                            <span class="select-shell">
+                                <select class="control"
+                                        value="@(Options.FindFlag(Command, flag) ?? string.Empty)"
+                                        @onchange="@(args => SetFlag(flag, args.Value?.ToString()))">
+                                    <option value="">Not set</option>
+                                    @foreach (var choice in ChoicesFor(flag))
+                                    {
+                                        <option value="@choice" @key="choice">@choice</option>
+                                    }
+                                </select>
+
+                                <ChevronIcon/>
+                            </span>
+
+                            break;
+
+                        case SettingKind.Number:
+                            <input class="control"
+                                   type="number"
+                                   placeholder="@flag.Placeholder"
+                                   value="@(Options.FindFlag(Command, flag) ?? string.Empty)"
+                                   @onchange="@(args => SetFlag(flag, args.Value?.ToString()))"/>
+
+                            break;
+
+                        default:
+                            <input class="control"
+                                   type="text"
+                                   spellcheck="false"
+                                   placeholder="@flag.Placeholder"
+                                   value="@(Options.FindFlag(Command, flag) ?? string.Empty)"
+                                   @onchange="@(args => SetFlag(flag, args.Value?.ToString()))"/>
+
+                            break;
+                    }
+                </div>
+            </div>
+        }
+    </CollapsibleGroup>
+}

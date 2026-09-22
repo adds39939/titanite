@@ -1,0 +1,24 @@
+.tag {
+    flex: none;
+    padding: 1px 7px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.tag-warning {
+    background: var(--warning-soft);
+    color: var(--warning);
+}
+
+.tag-preset {
+    max-width: 120px;
+    border: 1px solid currentColor;
+    background: var(--accent-soft);
+    color: var(--accent);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
