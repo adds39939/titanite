@@ -13,7 +13,7 @@ internal class Program
     private static async Task Main(string[] args)
     {
         WebKitEnvironment.EnsureOsIsLinux();
-        WebKitEnvironment.DisableDmaBufRenderer();
+        WebKitEnvironment.DisableNvidiaExplicitSync();
         DesktopIdentity.Apply();
 
         var appBuilder = PhotinoBlazorApp.CreateBuilder();

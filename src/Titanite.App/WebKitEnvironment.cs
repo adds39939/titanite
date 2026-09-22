@@ -7,7 +7,7 @@ internal static class WebKitEnvironment
     [DllImport("libc", SetLastError = true)]
     private static extern int setenv(string name, string value, int overwrite);
 
-    public static void DisableDmaBufRenderer() => setenv("WEBKIT_DISABLE_DMABUF_RENDERER", "1", 1);
+    public static void DisableNvidiaExplicitSync() => setenv("__NV_DISABLE_EXPLICIT_SYNC", "1", 0);
 
     public static void EnsureOsIsLinux()
     {
