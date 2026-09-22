@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Titanite.App": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

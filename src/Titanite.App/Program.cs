@@ -34,6 +34,9 @@ internal class Program
         app.MainWindow.SetTitle("Titanite");
         app.MainWindow.SetSize(new Size(1280, 900));
         app.MainWindow.SetIconFile(Path.Combine(AppContext.BaseDirectory, "wwwroot", "titanite-icon.png"));
+        
+        app.MainWindow.SetDevToolsEnabled(app.Environment.IsDevelopment);
+        app.MainWindow.SetContextMenuEnabled(app.Environment.IsDevelopment);
 
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>
         {
