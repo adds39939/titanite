@@ -89,6 +89,7 @@ select.control {
     color: var(--text-muted);
     font-size: 12px;
     cursor: pointer;
+    -webkit-user-select: none;
     user-select: none;
 }
 
