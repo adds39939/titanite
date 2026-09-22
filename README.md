@@ -24,3 +24,18 @@ Download the latest `.flatpak` from the [releases page](https://github.com/adds3
 ```sh
 flatpak install --user Titanite-*-x86_64.flatpak
 ```
+
+## Build from source
+
+You'll need the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0). Then build and run:
+
+```sh
+dotnet build Titanite.slnx
+dotnet run --project src/Titanite.App
+```
+
+Run the tests with:
+
+```sh
+dotnet test Titanite.slnx
+```
