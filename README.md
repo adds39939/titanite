@@ -13,8 +13,7 @@
 
 ![Titanite showing a Steam library](docs/screenshot.png)
 
-Pick a game from your library and set up Proton, DXVK, Gamescope, MangoHud, HDR, upscalers and more from a proper settings page instead of a single line of text. Save setups as presets, copy them between games, and choose which Proton build each game uses.
-
+Configure launch arguments for Proton, DXVK, Gamescope, MangoHud, HDR, upscalers and more for any game, all from a real settings page. Save presets and reuse them across games.
 ## Install
 
 Download the latest `.flatpak` from the [releases page](https://github.com/adds39939/titanite/releases), then run:
