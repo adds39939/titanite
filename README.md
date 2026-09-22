@@ -1,7 +1,4 @@
-<h1 align="center">
-  <img src="docs/icon.png" alt="" width="48" height="48" align="center">
-  Titanite
-</h1>
+<h1 align="center"><img src="docs/icon.png" alt="" height="38" align="absmiddle"> Titanite</h1>
 
 <p align="center">
   <a href="https://github.com/adds39939/titanite/releases"><img src="https://img.shields.io/badge/Download-Flatpak-4A90D9?style=for-the-badge&logo=flatpak&logoColor=white" alt="Download Flatpak"></a>
