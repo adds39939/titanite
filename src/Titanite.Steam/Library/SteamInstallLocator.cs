@@ -21,6 +21,7 @@ internal sealed class SteamInstallLocator : ISteamInstallLocator
             Path.Combine(home, ".steam", "steam"),
             Path.Combine(home, ".steam", "root"),
             Path.Combine(xdgDataHome, "Steam"),
+            Path.Combine(home, ".local", "share", "Steam"),
             Path.Combine(home, ".steam", "debian-installation"),
             Path.Combine(home, ".var", "app", "com.valvesoftware.Steam", "data", "Steam")
         ];

@@ -10,6 +10,7 @@ public sealed class ButtonTests : BunitContext
     [InlineData(ButtonVariant.Destructive, "button-destructive")]
     [InlineData(ButtonVariant.Danger, "button-danger")]
     [InlineData(ButtonVariant.Quiet, "button-quiet")]
+    [InlineData(ButtonVariant.Bare, "button-bare")]
     public void MapsEachVariantToItsClass(ButtonVariant variant, string expected)
     {
         var button = RenderButton(parameters => parameters.Add(component => component.Variant, variant));

@@ -68,6 +68,20 @@
     border-bottom-color: var(--accent);
 }
 
+.titlebar-meta {
+    display: inline-flex;
+    align-items: center;
+    align-self: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.version {
+    color: var(--text-muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
 .content {
     display: flex;
     flex-direction: column;

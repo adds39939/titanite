@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Titanite
+Comment=Launch argument manager for games
+Exec=titanite
+Icon=io.github.adds39939.Titanite
+Terminal=false
+Categories=Game;
+Keywords=Steam;Proton;Launch;Options;MangoHud;Gamescope;
+StartupNotify=true

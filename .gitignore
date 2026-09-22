@@ -12,3 +12,8 @@ compiler/generated/
 *.userprefs
 *.DotSettings.user
 .idea/
+
+artifacts/
+.flatpak-builder/
+flatpak-build/
+*.flatpak

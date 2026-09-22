@@ -1,53 +1,70 @@
+using Microsoft.Extensions.Logging.Abstractions;
+using Titanite.Abstractions.Processes;
 using Titanite.Steam.Client;
-using Titanite.Steam.Vdf;
 
 namespace Titanite.Steam.Tests;
 
 public class SteamClientLaunchTests
 {
-    [Fact]
-    public void StartsSteamInASessionOfItsOwn()
-    {
-        var startInfo = SteamClient.BuildStartInfo(detached: true, []);
+    private readonly IHostProcesses _host = A.Fake<IHostProcesses>();
 
-        Assert.Equal("setsid", startInfo.FileName);
-        Assert.Equal(["--fork", "steam"], startInfo.ArgumentList);
+    [Fact]
+    public void StartsSteamOnTheHost()
+    {
+        A.CallTo(() => _host.Start("steam", A<IReadOnlyList<string>>._)).Returns(true);
+
+        Assert.True(Client().Start());
+        A.CallTo(() => _host.Start("steam", A<IReadOnlyList<string>>.That.IsEmpty()))
+            .MustHaveHappenedOnceExactly();
     }
 
     [Fact]
     public void LaunchesAGameThroughSteamsOwnAddress()
     {
-        var startInfo = SteamClient.BuildStartInfo(detached: true, [SteamClient.GameUrl(440)]);
+        Client().LaunchGame(440);
 
-        Assert.Equal(["--fork", "steam", "steam://rungameid/440"], startInfo.ArgumentList);
+        A.CallTo(() => _host.Start(
+                "steam",
+                A<IReadOnlyList<string>>.That.IsSameSequenceAs("steam://rungameid/440")))
+            .MustHaveHappenedOnceExactly();
     }
 
     [Fact]
-    public void PassesArgumentsThroughToSteam()
+    public async Task AsksARunningSteamToShutDown()
     {
-        var startInfo = SteamClient.BuildStartInfo(detached: true, ["-shutdown"]);
+        A.CallTo(() => _host.IsRunning("steam")).ReturnsNextFromSequence(true, false);
+        A.CallTo(() => _host.Start("steam", A<IReadOnlyList<string>>._)).Returns(true);
 
-        Assert.Equal(["--fork", "steam", "-shutdown"], startInfo.ArgumentList);
-    }
-
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void NeverCapturesSteamsOutput(bool detached)
-    {
-        var startInfo = SteamClient.BuildStartInfo(detached, ["-shutdown"]);
-
-        Assert.False(startInfo.RedirectStandardOutput);
-        Assert.False(startInfo.RedirectStandardError);
-        Assert.False(startInfo.UseShellExecute);
+        Assert.True(await Client().ShutdownAsync(TimeSpan.FromSeconds(5)));
+        A.CallTo(() => _host.Start(
+                "steam",
+                A<IReadOnlyList<string>>.That.IsSameSequenceAs("-shutdown")))
+            .MustHaveHappenedOnceExactly();
     }
 
     [Fact]
-    public void FallsBackToLaunchingSteamDirectly()
+    public void ReportsFailureWhenTheHostCannotStartSteam()
     {
-        var startInfo = SteamClient.BuildStartInfo(detached: false, ["-shutdown"]);
+        A.CallTo(() => _host.Start("steam", A<IReadOnlyList<string>>._)).Returns(false);
 
-        Assert.Equal("steam", startInfo.FileName);
-        Assert.Equal(["-shutdown"], startInfo.ArgumentList);
+        Assert.False(Client().Start());
     }
+
+    [Fact]
+    public void LooksForSteamByItsProcessName()
+    {
+        A.CallTo(() => _host.IsRunning("steam")).Returns(true);
+
+        Assert.True(Client().IsRunning());
+    }
+
+    [Fact]
+    public void RecognisesAGameByTheLaunchMarkerSteamGivesIt()
+    {
+        A.CallTo(() => _host.AnyCommandLineContains("SteamLaunch AppId=")).Returns(true);
+
+        Assert.True(Client().IsGameRunning());
+    }
+
+    private SteamClient Client() => new(NullLogger<SteamClient>.Instance, _host);
 }

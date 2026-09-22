@@ -48,6 +48,22 @@
     font-size: 12px;
 }
 
+.button-bare {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px;
+    border-color: transparent;
+    background: transparent;
+    color: var(--text-muted);
+    transition: color 120ms ease;
+}
+
+.button-bare:hover:not(:disabled) {
+    border-color: transparent;
+    background: transparent;
+    color: var(--text);
+}
+
 .button-small {
     padding: 6px 14px;
     font-size: 13px;

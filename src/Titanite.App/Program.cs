@@ -14,6 +14,7 @@ internal class Program
     {
         WebKitEnvironment.EnsureOsIsLinux();
         WebKitEnvironment.DisableDmaBufRenderer();
+        DesktopIdentity.Apply();
 
         var appBuilder = PhotinoBlazorApp.CreateBuilder();
 

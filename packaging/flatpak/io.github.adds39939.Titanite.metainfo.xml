@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.adds39939.Titanite</id>
+  <name>Titanite</name>
+  <summary>Tune the launch options of your Steam games</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LicenseRef-proprietary</project_license>
+  <developer id="io.github.adds39939">
+    <name>adds39939</name>
+  </developer>
+  <description>
+    <p>
+      Titanite edits the launch options and Proton builds of your Steam games, and keeps
+      reusable presets of environment variables and wrapper commands.
+    </p>
+  </description>
+  <launchable type="desktop-id">io.github.adds39939.Titanite.desktop</launchable>
+  <icon type="stock">io.github.adds39939.Titanite</icon>
+  <url type="homepage">https://github.com/adds39939/titanite</url>
+  <url type="bugtracker">https://github.com/adds39939/titanite/issues</url>
+  <url type="vcs-browser">https://github.com/adds39939/titanite</url>
+  <categories>
+    <category>Game</category>
+  </categories>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="@VERSION@" date="@DATE@"/>
+  </releases>
+</component>

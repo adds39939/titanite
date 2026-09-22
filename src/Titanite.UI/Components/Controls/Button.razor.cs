@@ -32,6 +32,7 @@ public partial class Button : ComponentBase
         ButtonVariant.Destructive => "button-destructive",
         ButtonVariant.Danger => "button-danger",
         ButtonVariant.Quiet => "button-quiet",
+        ButtonVariant.Bare => "button-bare",
         _ => string.Empty
     };
 

@@ -10,5 +10,7 @@ public enum ButtonVariant
 
     Danger,
 
-    Quiet
+    Quiet,
+
+    Bare
 }

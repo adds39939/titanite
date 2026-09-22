@@ -6,10 +6,12 @@ using Titanite.Abstractions.Hosting;
 using Titanite.Bootstrap.Startup;
 using Titanite.Abstractions.Launchers;
 using Titanite.Abstractions.Presets;
+using Titanite.Abstractions.Processes;
 using Titanite.Abstractions.Settings;
 using Titanite.Catalog;
 using Titanite.Platform.Cpu;
 using Titanite.Platform.Desktop;
+using Titanite.Platform.Processes;
 using Titanite.Steam.Artwork;
 using Titanite.Steam.Client;
 using Titanite.Steam.Launch;
@@ -49,6 +51,8 @@ public static class ServiceCollectionExtensions
 
         services.AddSingleton<ICpuTopologyService, LinuxCpuTopologyService>();
         services.AddSingleton<IFileManagerService, XdgFileManagerService>();
+        services.AddSingleton<IBrowserService, XdgBrowserService>();
+        services.AddHostProcesses(FlatpakSandbox.IsActive);
         services.AddSingleton<ITitaniteStorage, TitaniteStorage>();
         services.AddSingleton<IPresetService, PresetService>();
         services.AddSingleton<IAppSettingsService, AppSettingsService>();
@@ -68,10 +72,16 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IGameConfigurationWatcher, SteamConfigurationWatcher>();
         services.AddSingleton<IPresetReconciler, PresetReconciler>();
 
+        services.AddSingleton<IApplicationInfo, ApplicationInfo>();
         services.AddSingleton<IAppStartupService, AppStartupService>();
         services.AddSingleton<IStartupStep, LauncherDebuggingStep>();
         services.AddSingleton<IStartupStep, PresetReconciliationStep>();
 
         return services;
     }
+
+    internal static IServiceCollection AddHostProcesses(this IServiceCollection services, bool sandboxed) =>
+        sandboxed
+            ? services.AddSingleton<IHostProcesses, FlatpakHostProcesses>()
+            : services.AddSingleton<IHostProcesses, NativeHostProcesses>();
 }

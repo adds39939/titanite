@@ -7,21 +7,12 @@ namespace Titanite.Platform.Tests;
 public class XdgFileManagerServiceTests
 {
     [Fact]
-    public void OpensTheFolderInASessionOfItsOwn()
+    public void OpensTheFolderWithTheDesktopsOwnHandler()
     {
         var startInfo = XdgFileManagerService.BuildStartInfo(detached: true, "/games/Half-Life");
 
         Assert.Equal("setsid", startInfo.FileName);
         Assert.Equal(["--fork", "xdg-open", "/games/Half-Life"], startInfo.ArgumentList);
-    }
-
-    [Fact]
-    public void FallsBackToOpeningTheFolderDirectly()
-    {
-        var startInfo = XdgFileManagerService.BuildStartInfo(detached: false, "/games/Half-Life");
-
-        Assert.Equal("xdg-open", startInfo.FileName);
-        Assert.Equal(["/games/Half-Life"], startInfo.ArgumentList);
     }
 
     [Theory]
