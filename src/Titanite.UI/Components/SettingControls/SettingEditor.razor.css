@@ -17,7 +17,7 @@
 
 .setting-name {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: var(--font-weight-strong);
 }
 
 .setting-description {
@@ -38,7 +38,7 @@
 
 .setting-variable {
     color: var(--text-muted);
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     overflow-wrap: anywhere;
 }
@@ -91,7 +91,7 @@
 select.control {
     appearance: none;
     padding-right: 26px;
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
     cursor: pointer;
 }
 
@@ -102,7 +102,7 @@ select.control {
 
 .control::placeholder {
     color: var(--text-muted);
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
 }
 
 .switch {

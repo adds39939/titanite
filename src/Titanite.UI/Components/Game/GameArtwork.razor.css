@@ -20,7 +20,7 @@
     display: grid;
     place-items: center;
     color: var(--accent);
-    font-weight: 600;
+    font-weight: var(--font-weight-strong);
     letter-spacing: 0.04em;
 }
 

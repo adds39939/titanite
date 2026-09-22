@@ -38,7 +38,7 @@
 
 .preset-label {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: var(--font-weight-strong);
 }
 
 .preset-detail {
@@ -48,7 +48,7 @@
 
 .preset-mask {
     color: var(--text-muted);
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
 }
 
@@ -59,7 +59,7 @@
 }
 
 .group-note code {
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
 }
 
 .threads {
@@ -79,7 +79,7 @@
     border-radius: 6px;
     background: var(--surface-1);
     color: var(--text-muted);
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     cursor: pointer;
     user-select: none;
@@ -107,7 +107,7 @@
     border-radius: 8px;
     background: var(--surface-0);
     color: var(--text);
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
 }
 

@@ -14,7 +14,7 @@
     margin-bottom: 6px;
     color: var(--text-muted);
     font-size: 11px;
-    font-weight: 600;
+    font-weight: var(--font-weight-strong);
     letter-spacing: 0.06em;
     text-transform: uppercase;
 }
@@ -26,7 +26,7 @@
 
 .legend-item {
     font-size: 10px;
-    font-weight: 600;
+    font-weight: var(--font-weight-strong);
     letter-spacing: 0.05em;
     text-transform: uppercase;
 }
@@ -46,7 +46,7 @@
     border-radius: 8px;
     background: var(--surface-1);
     color: var(--text-muted);
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     line-height: 1.7;
     white-space: pre-wrap;

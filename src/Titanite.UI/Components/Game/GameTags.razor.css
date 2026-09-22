@@ -3,7 +3,7 @@
     padding: 1px 7px;
     border-radius: 999px;
     font-size: 10px;
-    font-weight: 600;
+    font-weight: var(--font-weight-strong);
     letter-spacing: 0.05em;
     text-transform: uppercase;
 }

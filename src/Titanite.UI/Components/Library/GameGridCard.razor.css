@@ -44,7 +44,7 @@
 .tile-title {
     margin: 0;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: var(--font-weight-strong);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

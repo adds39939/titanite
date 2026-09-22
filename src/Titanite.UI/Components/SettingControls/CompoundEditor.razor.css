@@ -24,7 +24,7 @@
 
 .option-name {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: var(--font-weight-strong);
 }
 
 .option-description {
@@ -34,7 +34,7 @@
 
 .option-key {
     color: var(--text-muted);
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
 }
 
@@ -75,12 +75,12 @@
 select.control {
     appearance: none;
     padding-right: 26px;
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
     cursor: pointer;
 }
 
 .control-wide {
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
 }
 
 .control:focus {
@@ -90,7 +90,7 @@ select.control {
 
 .control::placeholder {
     color: var(--text-muted);
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
 }
 
 .switch {

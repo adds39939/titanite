@@ -124,7 +124,7 @@
 .section-title {
     margin: 0;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: var(--font-weight-strong);
 }
 
 .section-note {
@@ -158,7 +158,7 @@
     border-radius: 8px;
     background: var(--surface-1);
     color: var(--text);
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     line-height: 1.7;
     resize: vertical;
@@ -203,7 +203,7 @@
     border-radius: 8px;
     background: var(--surface-0);
     color: var(--text);
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
 }
 

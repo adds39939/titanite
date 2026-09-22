@@ -24,7 +24,7 @@
 .proton-header h1 {
     margin: 0;
     font-size: 22px;
-    font-weight: 600;
+    font-weight: var(--font-weight-strong);
 }
 
 .proton-subtitle {
@@ -69,7 +69,7 @@
     margin: 0;
     min-width: 0;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: var(--font-weight-strong);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -116,7 +116,7 @@
 }
 
 .fact code {
-    font-family: ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
 }
 
@@ -151,7 +151,7 @@
 .missing-title {
     margin: 0;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: var(--font-weight-strong);
 }
 
 .missing-note {
@@ -167,5 +167,5 @@
 }
 
 .missing-list code {
-    font-family: ui-monospace, monospace;
+    font-family: var(--font-mono);
 }

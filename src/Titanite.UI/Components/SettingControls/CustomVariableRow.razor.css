@@ -10,7 +10,7 @@
     flex: none;
     width: 34%;
     color: var(--text);
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     overflow-wrap: anywhere;
 }
@@ -23,7 +23,7 @@
     border-radius: 8px;
     background: var(--surface-0);
     color: var(--text);
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
 }
 

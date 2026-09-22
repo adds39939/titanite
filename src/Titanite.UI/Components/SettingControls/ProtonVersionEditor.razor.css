@@ -9,7 +9,7 @@
     flex: none;
     width: 180px;
     font-size: 13px;
-    font-weight: 600;
+    font-weight: var(--font-weight-strong);
 }
 
 .select-shell {
@@ -64,7 +64,7 @@
 }
 
 .status code {
-    font-family: ui-monospace, monospace;
+    font-family: var(--font-mono);
 }
 
 .is-warning {

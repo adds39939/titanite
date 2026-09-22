@@ -1,4 +1,25 @@
+@font-face {
+    font-family: "Noto Sans";
+    src: url("fonts/NotoSans.woff2") format("woff2");
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: block;
+}
+
+@font-face {
+    font-family: "Noto Sans Mono";
+    src: url("fonts/NotoSansMono.woff2") format("woff2");
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: block;
+}
+
 :root {
+    --font-sans: "Noto Sans", sans-serif;
+    --font-mono: "Noto Sans Mono", monospace;
+    --font-weight-regular: 400;
+    --font-weight-strong: 600;
+    --font-weight-bold: 700;
     --surface-0: #10141c;
     --surface-1: #171c26;
     --surface-2: #1f2634;
@@ -34,6 +55,17 @@
     clip-path: inset(50%);
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+strong,
+b {
+    font-weight: var(--font-weight-bold);
+}
+
 html,
 body {
     height: 100%;
@@ -43,7 +75,8 @@ body {
 body {
     background: var(--surface-0);
     color: var(--text);
-    font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-family: var(--font-sans);
+    font-weight: var(--font-weight-regular);
     font-size: 14px;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;

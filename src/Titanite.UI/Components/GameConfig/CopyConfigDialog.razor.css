@@ -26,7 +26,7 @@
     margin: 0;
     flex: none;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: var(--font-weight-strong);
 }
 
 .note {
@@ -128,7 +128,7 @@
     background: var(--accent-soft);
     color: var(--accent);
     font-size: 10px;
-    font-weight: 600;
+    font-weight: var(--font-weight-strong);
     letter-spacing: 0.05em;
     text-transform: uppercase;
     white-space: nowrap;

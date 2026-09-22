@@ -8,7 +8,7 @@
 .settings-header h1 {
     margin: 0;
     font-size: 22px;
-    font-weight: 600;
+    font-weight: var(--font-weight-strong);
 }
 
 .settings-subtitle {
@@ -32,7 +32,7 @@
 .setting-label h2 {
     margin: 0;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: var(--font-weight-strong);
 }
 
 .setting-label p {
@@ -49,7 +49,7 @@
 .setting-path {
     margin: 0;
     color: var(--text-muted);
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     overflow-wrap: anywhere;
 }
