@@ -4,10 +4,12 @@
 </h1>
 
 <p align="center">
-  <a href="https://github.com/adds39939/titanite/releases"><img src="https://img.shields.io/badge/Download-Flatpak-4A90D9?style=for-the-badge&logo=flatpak&logoColor=white" alt="Download Flatpak"></a>
+  <a href="https://github.com/adds39939/titanite/releases"><img src="https://img.shields.io/badge/Download-Flatpak-4A90D9?style=flat&logo=flatpak&logoColor=white" alt="Download Flatpak"></a>
+  <a href="https://github.com/adds39939/titanite/releases/latest"><img src="https://img.shields.io/github/v/release/adds39939/titanite?include_prereleases&style=flat&label=Release" alt="Latest release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/adds39939/titanite?style=flat&label=Licence" alt="MIT licence"></a>
 </p>
 
-<p align="center">Configure the launch options of your Steam games.</p>
+<p align="center">Easy launch argument configuration for your Linux Steam games.</p>
 
 ![Titanite showing a Steam library](docs/screenshot.png)
 
