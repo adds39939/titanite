@@ -31,7 +31,8 @@ internal class Program
         await app.Services.StartTitaniteAsync();
 
         app.MainWindow.SetTitle("Titanite");
-        app.MainWindow.Size = new Size(1280, 900);
+        app.MainWindow.SetSize(new Size(1280, 900));
+        app.MainWindow.SetIconFile(Path.Combine(AppContext.BaseDirectory, "wwwroot", "titanite-icon.png"));
 
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>
         {
