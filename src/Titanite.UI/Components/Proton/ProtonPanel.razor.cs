@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Titanite.Abstractions.Launchers;
 using Titanite.Core.Games;
-using Titanite.Core.Launch;
 using Titanite.Core.Proton;
 
 namespace Titanite.UI.Components.Proton;
@@ -16,9 +15,6 @@ public partial class ProtonPanel : ComponentBase
 
     [Inject]
     private IGameLauncher Launcher { get; set; } = null!;
-
-    [Inject]
-    private SettingCatalog Catalog { get; set; } = null!;
 
     private ProtonCatalogue Catalogue { get; set; } = ProtonCatalogue.Empty;
 
@@ -74,31 +70,13 @@ public partial class ProtonPanel : ComponentBase
     private bool IsDefault(ProtonBuild build) =>
         string.Equals(Assignments.Default, build.Name, StringComparison.OrdinalIgnoreCase);
 
-    private string GamesSummary(ProtonBuild build)
-    {
-        var games = NamesFor(Assignments.GamesUsing(build.Name));
-
-        return games.Count == 0
-            ? "No game is pointed at this build on its own."
-            : $"Used by {string.Join(", ", games)}.";
-    }
-
-    private string SupportSummary(ProtonBuild build)
-    {
-        if (!build.Capabilities.IsKnown)
+    private string GameCount(ProtonBuild build) =>
+        Assignments.GamesUsing(build.Name).Count switch
         {
-            return "Which settings it reads could not be checked.";
-        }
-
-        var ignored = Catalog.All
-            .Where(definition => build.Capabilities.Ignores(definition.Variable))
-            .Select(definition => definition.Label)
-            .ToList();
-
-        return ignored.Count == 0
-            ? "Reads every Proton setting Titanite offers."
-            : $"Ignores {string.Join(", ", ignored)}.";
-    }
+            0 => "None",
+            1 => "1 game",
+            var count => $"{count} games"
+        };
 
     private string MissingSummary(string toolName)
     {

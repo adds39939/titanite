@@ -1,5 +1,5 @@
 .descriptions {
-    margin-top: 24px;
+    margin-top: 10px;
     padding: 16px;
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -65,14 +65,6 @@
     color: var(--text-muted);
     font-size: 12px;
     text-align: right;
-}
-
-.explanation {
-    margin: 12px 0 0;
-    max-width: 78ch;
-    color: var(--text-muted);
-    font-size: 12px;
-    line-height: 1.6;
 }
 
 .message {

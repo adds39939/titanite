@@ -47,18 +47,8 @@
                             </div>
 
                             <div class="fact">
-                                <dt>Steam calls it</dt>
-                                <dd>
-                                    <code>@build.Name</code>
-
-                                    @if (build.NameIsDerived)
-                                    {
-                                        <span class="inferred"
-                                              title="Steam's compatibility log no longer names this build, so the name was inferred from how the build is displayed.">
-                                            inferred
-                                        </span>
-                                    }
-                                </dd>
+                                <dt>Games</dt>
+                                <dd>@GameCount(build)</dd>
                             </div>
 
                             <div class="fact fact-wide">
@@ -66,9 +56,6 @@
                                 <dd title="@build.InstallPath">@PathDisplay.Abbreviate(build.InstallPath)</dd>
                             </div>
                         </dl>
-
-                        <p class="build-games">@GamesSummary(build)</p>
-                        <p class="build-support">@SupportSummary(build)</p>
                     </li>
                 }
             </ul>

@@ -87,20 +87,6 @@
                                 @IGameConfigurationPresenter.NoPreset
                             </SingleSelectDropdownItem>
                         </SingleSelectDropdown>
-
-                        <span class="preset-note">
-                            @if (Presenter.AppliedPreset is { } preset)
-                            {
-                                <text>
-                                    Using @preset.Name. Changing any setting below makes these the
-                                    game's own, keeping whatever the preset put there.
-                                </text>
-                            }
-                            else
-                            {
-                                <text>Configured on its own. Picking a preset replaces the settings below.</text>
-                            }
-                        </span>
                     </Leading>
                 </LaunchOptionsEditor>
 
