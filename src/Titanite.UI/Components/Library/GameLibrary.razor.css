@@ -110,15 +110,15 @@
     list-style: none;
 }
 
-.game-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
-    grid-auto-rows: min-content;
-    gap: 18px;
+.game-grid.is-measuring {
+    visibility: hidden;
 }
 
-.game-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+.game-grid-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+    gap: 18px;
+    margin: 0 0 18px;
+    padding: 0;
+    list-style: none;
 }

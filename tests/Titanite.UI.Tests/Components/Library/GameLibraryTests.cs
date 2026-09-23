@@ -29,6 +29,8 @@ public sealed class GameLibraryTests : BunitContext
         A.CallTo(() => _presets.GetAllAsync(A<CancellationToken>._))
             .Returns<IReadOnlyList<Preset>>([Preset.Global]);
 
+        JSInterop.Mode = JSRuntimeMode.Loose;
+
         Services.AddSingleton(_library);
         Services.AddSingleton(_settings);
         Services.AddSingleton(A.Fake<IGameArtwork>());
@@ -79,7 +81,7 @@ public sealed class GameLibraryTests : BunitContext
         var library = Render<GameLibrary>();
 
         Assert.Empty(library.FindAll(".library-message"));
-        Assert.Equal(2, library.FindAll(".game-list > *").Count);
+        Assert.Equal(2, library.FindAll(".game-list > .game-row").Count);
         Assert.Contains("2 games installed", library.Find(".library-subtitle").TextContent);
     }
 
@@ -92,7 +94,8 @@ public sealed class GameLibraryTests : BunitContext
 
         library.Find(".search").Input("half-life");
 
-        Assert.Equal("No games match that search.", library.Find(".library-message").TextContent);
+        library.WaitForAssertion(() =>
+            Assert.Equal("No games match that search.", library.Find(".library-message").TextContent));
     }
 
     [Fact]
@@ -104,7 +107,30 @@ public sealed class GameLibraryTests : BunitContext
 
         library.Find(".search").Input("620");
 
-        Assert.Single(library.FindAll(".game-list > *"));
+        library.WaitForAssertion(() => Assert.Single(library.FindAll(".game-list > .game-row")));
+    }
+
+    [Fact]
+    public void WaitsForTypingToPauseBeforeSearching()
+    {
+        Installed(Game(620, "Portal 2"), Game(400, "Portal"));
+
+        var library = Render<GameLibrary>();
+
+        library.Find(".search").Input("6");
+        library.Find(".search").Input("62");
+
+        Assert.Equal(2, library.FindAll(".game-list > .game-row").Count);
+
+        library.WaitForAssertion(() => Assert.Single(library.FindAll(".game-list > .game-row")));
+    }
+
+    [Fact]
+    public void UsesTheLibraryAlreadyReadWhenOpened()
+    {
+        Render<GameLibrary>();
+
+        A.CallTo(() => _library.Invalidate()).MustNotHaveHappened();
     }
 
     [Fact]
@@ -114,7 +140,7 @@ public sealed class GameLibraryTests : BunitContext
 
         library.Find(".library-header button").Click();
 
-        A.CallTo(() => _library.Invalidate()).MustHaveHappenedTwiceExactly();
+        A.CallTo(() => _library.Invalidate()).MustHaveHappenedOnceExactly();
     }
 
     [Fact]
@@ -173,7 +199,7 @@ public sealed class GameLibraryTests : BunitContext
 
         var library = Render<GameLibrary>();
 
-        Assert.Single(library.FindAll(".game-list > *"));
+        Assert.Single(library.FindAll(".game-list > .game-row"));
         Assert.Contains("1 game installed", library.Find(".library-subtitle").TextContent);
     }
 
@@ -187,7 +213,7 @@ public sealed class GameLibraryTests : BunitContext
         OpenFilters(library);
         Filter(library, LibraryFilter.Tools).Change(true);
 
-        Assert.Equal(2, library.FindAll(".game-list > *").Count);
+        Assert.Equal(2, library.FindAll(".game-list > .game-row").Count);
 
         A.CallTo(() => _settings.SaveAsync(
                 A<AppSettings>.That.Matches(settings => settings.ShowTools && !settings.ShowNativeGames),
@@ -206,7 +232,7 @@ public sealed class GameLibraryTests : BunitContext
         Filter(library, LibraryFilter.Tools).Change(true);
         Filter(library, LibraryFilter.NativeGames).Change(true);
 
-        Assert.Equal(3, library.FindAll(".game-list > *").Count);
+        Assert.Equal(3, library.FindAll(".game-list > .game-row").Count);
     }
 
     [Fact]

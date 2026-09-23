@@ -20,8 +20,18 @@ internal sealed class SteamLibraryCacheArtworkService(ISteamInstallLocator steam
 
     public SchemeContent? Open(string? url)
     {
-        if (!ArtworkScheme.TryParse(url, out var appId, out var kind) ||
-            FindFile(appId, kind) is not { } path)
+        if (!ArtworkScheme.TryParse(url, out var appId, out var kind))
+        {
+            return null;
+        }
+
+        return TryOpen(FindFile(appId, kind)) ??
+               (_found.TryRemove((appId, kind), out _) ? TryOpen(FindFile(appId, kind)) : null);
+    }
+
+    private static SchemeContent? TryOpen(string? path)
+    {
+        if (path is null)
         {
             return null;
         }
@@ -38,7 +48,7 @@ internal sealed class SteamLibraryCacheArtworkService(ISteamInstallLocator steam
 
     private string? FindFile(uint appId, GameArtworkKind kind)
     {
-        if (_found.TryGetValue((appId, kind), out var remembered) && File.Exists(remembered))
+        if (_found.TryGetValue((appId, kind), out var remembered))
         {
             return remembered;
         }

@@ -10,7 +10,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddTransient<IGameConfigurationPresenter, GameConfigurationPresenter>();
         services.AddTransient<IPresetsPresenter, PresetsPresenter>();
-        services.AddTransient<IGameLibraryPresenter, GameLibraryPresenter>();
+        services.AddScoped<IGameLibraryPresenter, GameLibraryPresenter>();
         services.AddScoped<IUnsavedChanges, UnsavedChanges>();
 
         return services;

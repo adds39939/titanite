@@ -27,6 +27,8 @@ internal sealed class SteamLibraryService(
 
     private IReadOnlyList<SteamApp>? _apps;
 
+    private PublishedDetails? _published;
+
     public async Task<IReadOnlyList<SteamApp>> GetInstalledAppsAsync(
         CancellationToken cancellationToken = default)
     {
@@ -39,7 +41,7 @@ internal sealed class SteamLibraryService(
 
         try
         {
-            return _apps ??= await ScanAsync(cancellationToken).ConfigureAwait(false);
+            return _apps ??= await Task.Run(() => ScanAsync(cancellationToken), cancellationToken).ConfigureAwait(false);
         }
         finally
         {
@@ -78,21 +80,37 @@ internal sealed class SteamLibraryService(
 
         logger.LogInformation("Scanning Steam installation at {SteamRoot}.", steamRoot);
 
-        var metadata = SteamAppInfoFile.Read(Path.Combine(steamRoot, "appcache", "appinfo.vdf"));
+        var manifests = new List<AppManifest>();
 
-        logger.LogInformation("Read published details for {AppCount} Steam apps.", metadata.Count);
+        foreach (var libraryPath in await GetLibraryPathsAsync(steamRoot, cancellationToken).ConfigureAwait(false))
+        {
+            await foreach (var manifest in ReadLibraryAsync(libraryPath, cancellationToken).ConfigureAwait(false))
+            {
+                manifests.Add(manifest);
+            }
+        }
+
+        var metadata = ReadPublishedDetails(
+            steamRoot,
+            [.. manifests.Select(manifest => manifest.AppId).OfType<uint>()]);
 
         var entries = new List<SteamApp>();
         var seenAppIds = new HashSet<uint>();
 
-        foreach (var libraryPath in await GetLibraryPathsAsync(steamRoot, cancellationToken).ConfigureAwait(false))
+        foreach (var manifest in manifests)
         {
-            await foreach (var entry in ReadLibraryAsync(libraryPath, metadata, cancellationToken).ConfigureAwait(false))
+            var entry = CreateEntry(manifest, metadata);
+
+            if (entry is null)
             {
-                if (seenAppIds.Add(entry.AppId))
-                {
-                    entries.Add(entry);
-                }
+                logger.LogWarning("Skipped app manifest {ManifestPath}; it is missing required fields.", manifest.Path);
+
+                continue;
+            }
+
+            if (seenAppIds.Add(entry.AppId))
+            {
+                entries.Add(entry);
             }
         }
 
@@ -139,9 +157,32 @@ internal sealed class SteamLibraryService(
         return paths;
     }
 
-    private async IAsyncEnumerable<SteamApp> ReadLibraryAsync(
+    private IReadOnlyDictionary<uint, SteamAppMetadata> ReadPublishedDetails(
+        string steamRoot,
+        HashSet<uint> appIds)
+    {
+        var file = new FileInfo(Path.Combine(steamRoot, "appcache", "appinfo.vdf"));
+        var stamp = file.Exists ? (file.LastWriteTimeUtc, file.Length) : default;
+
+        if (_published is { } held &&
+            held.Path == file.FullName &&
+            held.Stamp == stamp &&
+            held.AppIds.IsSupersetOf(appIds))
+        {
+            return held.Metadata;
+        }
+
+        var metadata = SteamAppInfoFile.Read(file.FullName, appIds);
+
+        logger.LogInformation("Read published details for {AppCount} Steam apps.", metadata.Count);
+
+        _published = new PublishedDetails(file.FullName, stamp, appIds, metadata);
+
+        return metadata;
+    }
+
+    private async IAsyncEnumerable<AppManifest> ReadLibraryAsync(
         string libraryPath,
-        IReadOnlyDictionary<uint, SteamAppMetadata> metadata,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var steamAppsPath = Path.Combine(libraryPath, "steamapps");
@@ -172,30 +213,25 @@ internal sealed class SteamLibraryService(
                 continue;
             }
 
-            var entry = CreateEntry(manifest, libraryPath, steamAppsPath, metadata);
-
-            if (entry is null)
-            {
-                logger.LogWarning("Skipped app manifest {ManifestPath}; it is missing required fields.", manifestPath);
-
-                continue;
-            }
-
-            yield return entry;
+            yield return new AppManifest(
+                manifestPath,
+                manifest,
+                libraryPath,
+                steamAppsPath,
+                uint.TryParse(manifest.GetString("appid"), out var appId) ? appId : null);
         }
     }
 
     private static SteamApp? CreateEntry(
-        VObject manifest,
-        string libraryPath,
-        string steamAppsPath,
+        AppManifest found,
         IReadOnlyDictionary<uint, SteamAppMetadata> metadata)
     {
-        if (!uint.TryParse(manifest.GetString("appid"), out var appId))
+        if (found.AppId is not { } appId)
         {
             return null;
         }
 
+        var (_, manifest, libraryPath, steamAppsPath, _) = found;
         var installDirName = manifest.GetString("installdir");
 
         if (string.IsNullOrWhiteSpace(installDirName))
@@ -236,4 +272,17 @@ internal sealed class SteamLibraryService(
             ? SteamAppKind.Tool
             : SteamAppKind.Game;
     }
+
+    private sealed record AppManifest(
+        string Path,
+        VObject Manifest,
+        string LibraryPath,
+        string SteamAppsPath,
+        uint? AppId);
+
+    private sealed record PublishedDetails(
+        string Path,
+        (DateTime Modified, long Length) Stamp,
+        HashSet<uint> AppIds,
+        IReadOnlyDictionary<uint, SteamAppMetadata> Metadata);
 }

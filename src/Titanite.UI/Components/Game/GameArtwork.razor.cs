@@ -28,11 +28,22 @@ public partial class GameArtwork : ComponentBase
 
     private string Initials => GetInitials(Name);
 
+    private (GameId Id, GameArtworkKind Kind)? _lookedUp;
+
     protected override async Task OnParametersSetAsync()
     {
+        var wanted = (GameId, Kind);
+
+        if (_lookedUp == wanted)
+        {
+            return;
+        }
+
+        _lookedUp = wanted;
+
         var source = await Artwork.GetArtworkSourceAsync(GameId, Kind);
 
-        if (source != Source)
+        if (_lookedUp == wanted && source != Source)
         {
             Source = source;
             HasFailed = false;

@@ -33,11 +33,13 @@ internal static class SteamAppInfoFile
 
     private const byte Int64Value = 0x0A;
 
-    public static IReadOnlyDictionary<uint, SteamAppMetadata> Read(string path)
+    public static IReadOnlyDictionary<uint, SteamAppMetadata> Read(
+        string path,
+        IReadOnlySet<uint>? appIds = null)
     {
         try
         {
-            return Parse(File.ReadAllBytes(path));
+            return Parse(File.ReadAllBytes(path), appIds);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or OutOfMemoryException)
         {
@@ -45,7 +47,9 @@ internal static class SteamAppInfoFile
         }
     }
 
-    internal static IReadOnlyDictionary<uint, SteamAppMetadata> Parse(ReadOnlySpan<byte> file)
+    internal static IReadOnlyDictionary<uint, SteamAppMetadata> Parse(
+        ReadOnlySpan<byte> file,
+        IReadOnlySet<uint>? appIds = null)
     {
         var found = new Dictionary<uint, SteamAppMetadata>();
 
@@ -82,7 +86,8 @@ internal static class SteamAppInfoFile
 
             var next = position + 8 + (int)length;
 
-            if (ReadCommon(file[(position + 8 + AppHeaderLength)..next], keys) is { } metadata)
+            if ((appIds is null || appIds.Contains(appId)) &&
+                ReadCommon(file[(position + 8 + AppHeaderLength)..next], keys) is { } metadata)
             {
                 found[appId] = metadata;
             }
@@ -204,7 +209,7 @@ internal static class SteamAppInfoFile
 
                 break;
             case StringValue:
-                ReadNullTerminated(body, ref position);
+                SkipNullTerminated(body, ref position);
 
                 break;
             case WideStringValue:
@@ -237,8 +242,20 @@ internal static class SteamAppInfoFile
                 return;
             }
 
-            ReadKey(body, ref position, keys);
+            SkipKey(body, ref position, keys);
             Skip(kind, body, ref position, keys);
+        }
+    }
+
+    private static void SkipKey(ReadOnlySpan<byte> body, ref int position, string[]? keys)
+    {
+        if (keys is null)
+        {
+            SkipNullTerminated(body, ref position);
+        }
+        else
+        {
+            position = Math.Min(position + 4, body.Length);
         }
     }
 
@@ -286,6 +303,13 @@ internal static class SteamAppInfoFile
         position += end + 1;
 
         return text;
+    }
+
+    private static void SkipNullTerminated(ReadOnlySpan<byte> body, ref int position)
+    {
+        var end = position < body.Length ? body[position..].IndexOf((byte)0) : -1;
+
+        position = end < 0 ? body.Length : position + end + 1;
     }
 
     private static void SkipWideString(ReadOnlySpan<byte> body, ref int position)

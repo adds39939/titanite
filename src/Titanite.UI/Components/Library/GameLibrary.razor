@@ -14,7 +14,7 @@
         <input class="search"
                type="search"
                placeholder="Search installed games…"
-               value="@Presenter.SearchTerm"
+               value="@_startingSearch"
                @oninput="OnSearchChanged"/>
 
         <SingleSelectDropdown Label="@Presenter.SortOrder.Title()">
@@ -81,26 +81,29 @@
     }
     else if (Presenter.ViewMode == LibraryViewMode.Grid)
     {
-        <ul class="game-grid">
-            @foreach (var game in Presenter.VisibleGames)
-            {
-                <GameGridCard Entry="@game"
-                              PresetName="@Presenter.PresetFor(game)"
-                              OnSelect="Select"
-                              @key="game.Id"/>
-            }
-        </ul>
+        <div class="game-grid @(IsMeasuringGrid ? "is-measuring" : string.Empty)" @ref="_grid">
+            <Virtualize Items="GridRows" ItemSize="GridRowSize" OverscanCount="2" Context="row">
+                <ul class="game-grid-row" @key="row[0].Id">
+                    @foreach (var game in row)
+                    {
+                        <GameGridCard Entry="@game"
+                                      PresetName="@Presenter.PresetFor(game)"
+                                      OnSelect="Select"
+                                      @key="game.Id"/>
+                    }
+                </ul>
+            </Virtualize>
+        </div>
     }
     else
     {
         <ul class="game-list">
-            @foreach (var game in Presenter.VisibleGames)
-            {
+            <Virtualize Items="ListItems" ItemSize="ListRowSize" OverscanCount="6" SpacerElement="li" Context="game">
                 <GameListCard Entry="@game"
                               PresetName="@Presenter.PresetFor(game)"
                               OnSelect="Select"
                               @key="game.Id"/>
-            }
+            </Virtualize>
         </ul>
     }
 </section>

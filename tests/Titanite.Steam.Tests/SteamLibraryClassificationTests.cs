@@ -89,14 +89,50 @@ public sealed class SteamLibraryClassificationTests : IDisposable
         Assert.False(games["Portal 2"].RunsNatively);
     }
 
-    private async Task<IReadOnlyDictionary<string, Titanite.Core.Games.GameEntry>> Scan()
+    [Fact]
+    public async Task ReadsWhatSteamPublishedAgainOnceItChanges()
     {
-        var service = new SteamLibraryService(
-            FakeSteamInstall.At(_root),
-            NullLogger<SteamLibraryService>.Instance);
+        Installed(570, "Dota 2");
+        Published(new PublishedApp(570, "Game", "windows"));
 
-        return (await service.GetGamesAsync()).ToDictionary(game => game.Name);
+        var service = CreateService();
+
+        Assert.False((await Scan(service))["Dota 2"].RunsNatively);
+
+        Published(new PublishedApp(570, "Game", "linux"));
+        File.SetLastWriteTimeUtc(Path.Combine(_root, "appcache", "appinfo.vdf"), DateTime.UtcNow.AddMinutes(1));
+        service.Invalidate();
+
+        Assert.True((await Scan(service))["Dota 2"].RunsNatively);
     }
+
+    [Fact]
+    public async Task ReadsWhatSteamPublishedForAGameInstalledSinceTheLastScan()
+    {
+        Installed(620, "Portal 2");
+
+        Published(
+            new PublishedApp(620, "Game", "windows"),
+            new PublishedApp(570, "Game", "windows,macos,linux"));
+
+        var service = CreateService();
+
+        await Scan(service);
+
+        Installed(570, "Dota 2");
+        service.Invalidate();
+
+        Assert.True((await Scan(service))["Dota 2"].RunsNatively);
+    }
+
+    private SteamLibraryService CreateService() =>
+        new(FakeSteamInstall.At(_root), NullLogger<SteamLibraryService>.Instance);
+
+    private Task<IReadOnlyDictionary<string, Titanite.Core.Games.GameEntry>> Scan() => Scan(CreateService());
+
+    private static async Task<IReadOnlyDictionary<string, Titanite.Core.Games.GameEntry>> Scan(
+        SteamLibraryService service) =>
+        (await service.GetGamesAsync()).ToDictionary(game => game.Name);
 
     private void Installed(uint appId, string name)
     {

@@ -14,7 +14,20 @@ public sealed class GameLibraryPresenter(
 {
     public IReadOnlyList<GameEntry> Games { get; private set; } = [];
 
-    public string SearchTerm { get; set; } = string.Empty;
+    public string SearchTerm
+    {
+        get => _searchTerm;
+        set
+        {
+            if (_searchTerm == value)
+            {
+                return;
+            }
+
+            _searchTerm = value;
+            Refilter();
+        }
+    }
 
     public LibraryViewMode ViewMode { get; private set; }
 
@@ -23,6 +36,10 @@ public sealed class GameLibraryPresenter(
     public bool ShowNativeGames { get; private set; }
 
     public bool ShowTools { get; private set; }
+
+    private string _searchTerm = string.Empty;
+
+    private bool _hasReadSettings;
 
     private IReadOnlyDictionary<GameId, string> _appliedPresets =
         new Dictionary<GameId, string>();
@@ -39,9 +56,9 @@ public sealed class GameLibraryPresenter(
 
     public string? LoadError { get; private set; }
 
-    public IReadOnlyList<GameEntry> VisibleGames => [.. SortOrder.Apply(Games.Where(Admits).Where(Matches))];
+    public IReadOnlyList<GameEntry> VisibleGames { get; private set; } = [];
 
-    public int AdmittedCount => Games.Count(Admits);
+    public int AdmittedCount { get; private set; }
 
     public string Subtitle => IsLoading || LoadError is not null
         ? "Games installed on this machine"
@@ -62,24 +79,35 @@ public sealed class GameLibraryPresenter(
 
     public async Task LoadAsync(CancellationToken cancellationToken = default)
     {
-        var stored = await settings.GetAsync(cancellationToken);
+        if (!_hasReadSettings)
+        {
+            var stored = await settings.GetAsync(cancellationToken);
 
-        ViewMode = stored.LibraryView;
-        SortOrder = stored.LibrarySort;
-        ShowNativeGames = stored.ShowNativeGames;
-        ShowTools = stored.ShowTools;
+            ViewMode = stored.LibraryView;
+            SortOrder = stored.LibrarySort;
+            ShowNativeGames = stored.ShowNativeGames;
+            ShowTools = stored.ShowTools;
 
-        await RescanAsync(cancellationToken);
+            _hasReadSettings = true;
+        }
+
+        await ReadAsync(fromDisk: false, cancellationToken);
     }
 
-    public async Task RescanAsync(CancellationToken cancellationToken = default)
+    public Task RescanAsync(CancellationToken cancellationToken = default) =>
+        ReadAsync(fromDisk: true, cancellationToken);
+
+    private async Task ReadAsync(bool fromDisk, CancellationToken cancellationToken)
     {
         IsLoading = true;
         LoadError = null;
 
         try
         {
-            library.Invalidate();
+            if (fromDisk)
+            {
+                library.Invalidate();
+            }
 
             Games = await library.GetGamesAsync(cancellationToken);
 
@@ -92,6 +120,7 @@ public sealed class GameLibraryPresenter(
         }
         finally
         {
+            Refilter();
             IsLoading = false;
         }
     }
@@ -106,6 +135,7 @@ public sealed class GameLibraryPresenter(
     public Task SortByAsync(LibrarySortOrder order, CancellationToken cancellationToken = default)
     {
         SortOrder = order;
+        Refilter();
 
         return RememberAsync(stored => stored with { LibrarySort = order }, cancellationToken);
     }
@@ -128,6 +158,8 @@ public sealed class GameLibraryPresenter(
             default:
                 return Task.CompletedTask;
         }
+
+        Refilter();
 
         return RememberAsync(stored => filter.With(stored, isOn), cancellationToken);
     }
@@ -162,16 +194,18 @@ public sealed class GameLibraryPresenter(
         }
     }
 
-    private bool Matches(GameEntry game)
+    private void Refilter()
     {
-        if (string.IsNullOrWhiteSpace(SearchTerm))
-        {
-            return true;
-        }
-
+        var admitted = Games.Where(Admits).ToArray();
         var term = SearchTerm.Trim();
 
-        return game.Name.Contains(term, StringComparison.CurrentCultureIgnoreCase) ||
-               game.Id.Id.Contains(term, StringComparison.Ordinal);
+        AdmittedCount = admitted.Length;
+        VisibleGames = term.Length == 0
+            ? SortOrder.Apply(admitted).ToArray()
+            : SortOrder.Apply(admitted.Where(game => Matches(game, term))).ToArray();
     }
+
+    private static bool Matches(GameEntry game, string term) =>
+        game.Name.Contains(term, StringComparison.CurrentCultureIgnoreCase) ||
+        game.Id.Id.Contains(term, StringComparison.Ordinal);
 }

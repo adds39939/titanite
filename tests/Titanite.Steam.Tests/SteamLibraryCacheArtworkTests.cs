@@ -147,6 +147,23 @@ public sealed class SteamLibraryCacheArtworkTests : IDisposable
     }
 
     [Fact]
+    public void FollowsArtworkThatSteamHasMoved()
+    {
+        var path = WriteArtwork(440, "library_600x900.jpg", "old");
+        var service = CreateService();
+
+        service.Open("artwork://steam/440/capsule")?.Content.Dispose();
+
+        File.Delete(path);
+        WriteArtwork(440, "library_600x900.jpg", "new");
+
+        var content = service.Open("artwork://steam/440/capsule");
+
+        Assert.NotNull(content);
+        content.Content.Dispose();
+    }
+
+    [Fact]
     public void ForgetsAFileThatHasGoneSinceItWasFound()
     {
         var path = WriteArtwork(440, "library_600x900.jpg");

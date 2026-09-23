@@ -18,6 +18,18 @@ public sealed class SteamAppInfoFileTests
     }
 
     [Fact]
+    public void ReadsOnlyTheAppsAskedFor()
+    {
+        var published = SteamAppInfoFile.Parse(
+            FakeAppInfo.WithStringTable(
+                new PublishedApp(620, "Game", "windows,macos"),
+                new PublishedApp(1826330, "Tool", "linux")),
+            new HashSet<uint> { 1826330 });
+
+        Assert.Equal([1826330u], published.Keys);
+    }
+
+    [Fact]
     public void ReadsTheOlderShapeThatSpellsEveryKeyOut()
     {
         var published = SteamAppInfoFile.Parse(FakeAppInfo.WithInlineKeys(
