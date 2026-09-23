@@ -13,6 +13,7 @@ public sealed class MainLayoutTests : BunitContext
     private static readonly Uri Repository = new("https://github.com/example/titanite");
 
     private readonly IBrowserService _browser = A.Fake<IBrowserService>();
+    private readonly IAppStartupService _startup = A.Fake<IAppStartupService>();
 
     public MainLayoutTests()
     {
@@ -26,6 +27,32 @@ public sealed class MainLayoutTests : BunitContext
         Services.AddSingleton(A.Fake<IAppUpdater>());
         Services.AddSingleton(A.Fake<IAppLifetime>());
         Services.AddSingleton(A.Fake<IUnsavedChanges>());
+        Services.AddSingleton(_startup);
+    }
+
+    [Fact]
+    public void SaysWhatItIsDoingWhileStartingUp()
+    {
+        A.CallTo(() => _startup.IsRunning).Returns(true);
+        A.CallTo(() => _startup.Activity).Returns("Connecting to Steam…");
+
+        var layout = Render<MainLayout>();
+
+        Assert.Equal("Connecting to Steam…", layout.Find(".startup-status").TextContent.Trim());
+    }
+
+    [Fact]
+    public void ClearsTheStartupStatusOnceItIsDone()
+    {
+        A.CallTo(() => _startup.IsRunning).Returns(true);
+        A.CallTo(() => _startup.Activity).Returns("Connecting to Steam…");
+
+        var layout = Render<MainLayout>();
+
+        A.CallTo(() => _startup.IsRunning).Returns(false);
+        _startup.Changed += Raise.FreeForm<Action>.With();
+
+        layout.WaitForAssertion(() => Assert.Empty(layout.FindAll(".startup-status")));
     }
 
     [Fact]

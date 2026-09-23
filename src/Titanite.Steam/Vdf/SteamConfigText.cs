@@ -13,6 +13,71 @@ internal static class SteamConfigText
             : null;
     }
 
+    public static IReadOnlyDictionary<string, string> GetValuesUnder(
+        string document,
+        IReadOnlyList<string> parentPath,
+        string valueKey)
+    {
+        var found = new Dictionary<string, string>(StringComparer.Ordinal);
+        var path = new List<string>();
+        var position = 0;
+
+        while (position < document.Length)
+        {
+            SkipInsignificant(document, ref position);
+
+            if (position >= document.Length)
+            {
+                break;
+            }
+
+            if (document[position] == '}')
+            {
+                if (path.Count > 0)
+                {
+                    path.RemoveAt(path.Count - 1);
+                }
+
+                position++;
+
+                continue;
+            }
+
+            if (document[position] != '"')
+            {
+                position++;
+
+                continue;
+            }
+
+            var key = ReadQuoted(document, ref position, out _, out _);
+
+            SkipInsignificant(document, ref position);
+
+            if (position < document.Length && document[position] == '{')
+            {
+                path.Add(key);
+                position++;
+
+                continue;
+            }
+
+            if (position < document.Length && document[position] == '"')
+            {
+                SkipQuoted(document, ref position, out var valueStart, out var valueLength);
+
+                if (path.Count == parentPath.Count + 1 &&
+                    StartsWith(path, parentPath) &&
+                    string.Equals(key, valueKey, StringComparison.Ordinal))
+                {
+                    found[path[^1]] = Unescape(document.Substring(valueStart, valueLength));
+                }
+            }
+        }
+
+        return found;
+    }
+
     private static ScanResult Scan(string document, IReadOnlyList<string> keyPath)
     {
         var result = new ScanResult();
@@ -65,7 +130,7 @@ internal static class SteamConfigText
                                IsPrefixOf(path, keyPath) &&
                                string.Equals(key, keyPath[^1], StringComparison.Ordinal);
 
-                ReadQuoted(document, ref position, out var valueStart, out var valueLength);
+                SkipQuoted(document, ref position, out var valueStart, out var valueLength);
 
                 if (isTarget)
                 {
@@ -90,6 +155,19 @@ internal static class SteamConfigText
         for (var i = 0; i < path.Count; i++)
         {
             if (!string.Equals(path[i], keyPath[i], StringComparison.Ordinal))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool StartsWith(List<string> path, IReadOnlyList<string> prefix)
+    {
+        for (var i = 0; i < prefix.Count; i++)
+        {
+            if (!string.Equals(path[i], prefix[i], StringComparison.Ordinal))
             {
                 return false;
             }
@@ -125,6 +203,13 @@ internal static class SteamConfigText
 
     private static string ReadQuoted(string document, ref int position, out int start, out int length)
     {
+        SkipQuoted(document, ref position, out start, out length);
+
+        return Unescape(document.Substring(start, length));
+    }
+
+    private static void SkipQuoted(string document, ref int position, out int start, out int length)
+    {
         position++;
         start = position;
 
@@ -136,14 +221,10 @@ internal static class SteamConfigText
         position = Math.Min(position, document.Length);
         length = position - start;
 
-        var raw = document.Substring(start, length);
-
         if (position < document.Length)
         {
             position++;
         }
-
-        return Unescape(raw);
     }
 
     public static string Unescape(string value)

@@ -4,15 +4,61 @@ using System.Net.WebSockets;
 
 namespace Titanite.Steam.Client;
 
-internal sealed class SteamClientBridge(ILogger<SteamClientBridge> logger) : ISteamClientBridge
+internal sealed class SteamClientBridge(ILogger<SteamClientBridge> logger) : ISteamClientBridge, IDisposable
 {
     private static readonly TimeSpan ConnectTimeout = TimeSpan.FromSeconds(5);
-
     private static readonly HttpClient Http = new() { Timeout = ConnectTimeout };
 
     private readonly SemaphoreSlim _turns = new(1, 1);
+    private readonly SemaphoreSlim _connecting = new(1, 1);
+
+    private SteamClientSession? _session;
 
     public async Task<ISteamClientSession?> ConnectAsync(CancellationToken cancellationToken = default)
+    {
+        if (_session is { IsOpen: true } open)
+        {
+            return open;
+        }
+
+        await _connecting.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            if (_session is { IsOpen: true } opened)
+            {
+                return opened;
+            }
+
+            if (_session is { } closed)
+            {
+                _session = null;
+
+                await closed.CloseAsync().ConfigureAwait(false);
+            }
+
+            if (await OpenAsync(cancellationToken).ConfigureAwait(false) is not { } socket)
+            {
+                return null;
+            }
+
+            logger.LogDebug("Connected to Steam's interface.");
+
+            return _session = new SteamClientSession(socket, _turns, logger);
+        }
+        finally
+        {
+            _connecting.Release();
+        }
+    }
+
+    public void Dispose()
+    {
+        _session?.Abort();
+        _session = null;
+    }
+
+    private async Task<ClientWebSocket?> OpenAsync(CancellationToken cancellationToken)
     {
         using var attempt = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
@@ -37,7 +83,7 @@ internal sealed class SteamClientBridge(ILogger<SteamClientBridge> logger) : ISt
 
             await socket.ConnectAsync(new Uri(address), attempt.Token).ConfigureAwait(false);
 
-            return new SteamClientSession(socket, _turns, logger);
+            return socket;
         }
         catch (Exception e) when (e is HttpRequestException or WebSocketException or UriFormatException)
         {

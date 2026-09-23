@@ -17,38 +17,47 @@ public partial class CpuAffinityEditor : ComponentBase
 
     private CpuTopology Topology => TopologyService.Get();
 
-    private IReadOnlyList<int> SelectedThreads => CpuAffinityMask.Parse(Value);
+    private IReadOnlyList<AffinityPreset>? _presets;
 
-    private IReadOnlyList<AffinityPreset> Presets
+    private IReadOnlyList<int> SelectedThreads { get; set; } = [];
+
+    private HashSet<int> Selected { get; set; } = [];
+
+    private IReadOnlyList<AffinityPreset> Presets => _presets ??= BuildPresets();
+
+    protected override void OnParametersSet()
     {
-        get
+        SelectedThreads = CpuAffinityMask.Parse(Value);
+        Selected = [.. SelectedThreads];
+    }
+
+    private IReadOnlyList<AffinityPreset> BuildPresets()
+    {
+        var presets = new List<AffinityPreset>
         {
-            var presets = new List<AffinityPreset>
-            {
-                new("All threads", null, "No pinning; the scheduler decides.")
-            };
+            new("All threads", null, "No pinning; the scheduler decides.")
+        };
 
-            foreach (var group in Topology.CacheGroups)
-            {
-                var isLargest = Topology.LargestCacheGroup == group;
+        foreach (var group in Topology.CacheGroups)
+        {
+            var isLargest = Topology.LargestCacheGroup == group;
 
-                presets.Add(new AffinityPreset(
-                    isLargest ? "Largest cache group" : "Cache group",
-                    group.Mask,
-                    $"{group.Threads.Count} threads sharing {group.CacheBytes / 1024 / 1024} MiB" +
-                    (isLargest ? " — usually the one games want" : string.Empty)));
-            }
-
-            if (Topology.HasSimultaneousMultithreading)
-            {
-                presets.Add(new AffinityPreset(
-                    "Physical cores only",
-                    CpuAffinityMask.Format(Topology.PhysicalCoreThreads),
-                    "One thread per core, avoiding sibling threads."));
-            }
-
-            return presets;
+            presets.Add(new AffinityPreset(
+                isLargest ? "Largest cache group" : "Cache group",
+                group.Mask,
+                $"{group.Threads.Count} threads sharing {group.CacheBytes / 1024 / 1024} MiB" +
+                (isLargest ? " — usually the one games want" : string.Empty)));
         }
+
+        if (Topology.HasSimultaneousMultithreading)
+        {
+            presets.Add(new AffinityPreset(
+                "Physical cores only",
+                CpuAffinityMask.Format(Topology.PhysicalCoreThreads),
+                "One thread per core, avoiding sibling threads."));
+        }
+
+        return presets;
     }
 
     private bool IsSelected(AffinityPreset preset)
@@ -58,15 +67,14 @@ public partial class CpuAffinityEditor : ComponentBase
             return string.IsNullOrWhiteSpace(Value);
         }
 
-        return !string.IsNullOrWhiteSpace(Value) &&
-               CpuAffinityMask.Parse(preset.Mask).SequenceEqual(SelectedThreads);
+        return !string.IsNullOrWhiteSpace(Value) && preset.Threads.SequenceEqual(SelectedThreads);
     }
 
     private Task Apply(string? mask) => ValueChanged.InvokeAsync(mask);
 
     private Task ToggleThread(int thread, bool isOn)
     {
-        var threads = SelectedThreads.ToHashSet();
+        var threads = Selected.ToHashSet();
 
         if (isOn)
         {
@@ -89,5 +97,8 @@ public partial class CpuAffinityEditor : ComponentBase
         return Apply(string.IsNullOrWhiteSpace(mask) ? null : mask.Trim());
     }
 
-    private sealed record AffinityPreset(string Label, string? Mask, string? Detail);
+    private sealed record AffinityPreset(string Label, string? Mask, string? Detail)
+    {
+        public IReadOnlyList<int> Threads { get; } = CpuAffinityMask.Parse(Mask);
+    }
 }

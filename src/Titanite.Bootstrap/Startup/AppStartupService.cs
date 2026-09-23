@@ -7,18 +7,57 @@ internal sealed class AppStartupService(
     IEnumerable<IStartupStep> steps,
     ILogger<AppStartupService> logger) : IAppStartupService
 {
-    public async Task RunAsync(CancellationToken cancellationToken = default)
+    private readonly Lock _starting = new();
+
+    private Task? _run;
+
+    private volatile bool _isRunning;
+    private volatile IStartupStep? _current;
+
+    public bool IsRunning => _isRunning;
+
+    public string? Activity => _current?.Activity;
+
+    public event Action? Changed;
+
+    public Task RunAsync(CancellationToken cancellationToken = default)
     {
-        foreach (var step in steps)
+        lock (_starting)
         {
-            try
+            if (_run is null)
             {
-                await step.RunAsync(cancellationToken).ConfigureAwait(false);
+                _isRunning = true;
+                _run = Task.Run(() => RunStepsAsync(cancellationToken), CancellationToken.None);
             }
-            catch (Exception e)
+
+            return _run;
+        }
+    }
+
+    private async Task RunStepsAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            foreach (var step in steps)
             {
-                logger.LogError(e, "{Step} did not finish. The application is starting anyway.", step.Name);
+                _current = step;
+                Changed?.Invoke();
+
+                try
+                {
+                    await step.RunAsync(cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "{Step} did not finish. The application is starting anyway.", step.Name);
+                }
             }
+        }
+        finally
+        {
+            _current = null;
+            _isRunning = false;
+            Changed?.Invoke();
         }
     }
 }

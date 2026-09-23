@@ -21,7 +21,9 @@ public partial class CompoundEditor : ComponentBase
     [Parameter]
     public bool ShowDescriptions { get; set; }
 
-    private CompoundValue Current => CompoundValue.Parse(Schema, Value);
+    private CompoundValue Current { get; set; } = null!;
+
+    protected override void OnParametersSet() => Current = CompoundValue.Parse(Schema, Value);
 
     private IEnumerable<CompoundOptionGroup> ListedGroups =>
         SetOnly ? Current.GroupsWithValues() : Schema.Groups;

@@ -319,6 +319,62 @@ public sealed class PresetServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task KeepsAPresetAppliedWhileTheCheckWasAskingSteam()
+    {
+        var service = CreateService();
+        var applying = false;
+
+        await service.ApplyAsync(Game(620), PresetId.Global);
+
+        _stored[Game(620)] = "MANGOHUD=1 %command%";
+
+        A.CallTo(() => _steam.GetManyAsync(A<IReadOnlyCollection<GameId>>._, A<CancellationToken>._))
+            .ReturnsLazily((IReadOnlyCollection<GameId> ids, CancellationToken _) =>
+            {
+                if (!applying)
+                {
+                    applying = true;
+                    service.ApplyAsync(Game(400), PresetId.Global).GetAwaiter().GetResult();
+                }
+
+                return (IReadOnlyDictionary<GameId, LaunchOptions>)ids.ToDictionary(
+                    id => id,
+                    id => LaunchOptions.Parse(_stored.GetValueOrDefault(id, string.Empty)));
+            });
+
+        Assert.Equal(1, await service.ReconcileAsync());
+        Assert.Null(await service.AppliedToAsync(Game(620)));
+        Assert.Equal(PresetId.Global, await service.AppliedToAsync(Game(400)));
+    }
+
+    [Fact]
+    public async Task KeepsAPresetAppliedWhileAnotherWasBeingSaved()
+    {
+        var service = CreateService();
+        var steamSaving = new TaskCompletionSource<LaunchOptionsSaveResult>();
+
+        await service.ApplyAsync(Game(620), PresetId.Global);
+
+        A.CallTo(() => _steam.SaveManyAsync(
+                A<IReadOnlyDictionary<GameId, LaunchOptions>>._,
+                A<IReadOnlyDictionary<GameId, string>>._,
+                A<CancellationToken>._))
+            .Returns(steamSaving.Task);
+
+        var saving = service.SaveAndApplyAsync(
+            Preset.Global with { Options = LaunchOptions.Parse("MANGOHUD=1 %command%") });
+
+        var applying = service.ApplyAsync(Game(400), PresetId.Global);
+
+        steamSaving.SetResult(new LaunchOptionsSaveResult(LaunchOptionsSaveStatus.Saved));
+
+        await Task.WhenAll(saving, applying);
+
+        Assert.Equal(PresetId.Global, await service.AppliedToAsync(Game(400)));
+        Assert.Equal("MANGOHUD=1 %command%", (await service.GetAsync(PresetId.Global)).Options.Format());
+    }
+
+    [Fact]
     public async Task HasNothingToReconcileWhenNoGameUsesAPreset() =>
         Assert.Equal(0, await CreateService().ReconcileAsync());
 }

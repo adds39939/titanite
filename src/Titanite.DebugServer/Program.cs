@@ -19,8 +19,6 @@ app.UseAntiforgery();
 
 app.MapCustomSchemes();
 
-await app.Services.StartTitaniteAsync();
-
 app.MapRazorComponents<Root>()
     .AddInteractiveServerRenderMode()
     .AddAdditionalAssemblies(typeof(Titanite.UI.App).Assembly);

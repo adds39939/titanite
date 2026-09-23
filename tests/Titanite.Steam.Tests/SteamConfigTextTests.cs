@@ -54,6 +54,42 @@ public class SteamConfigTextTests
         Assert.Equal("1700000000", SteamConfigText.GetValue(Document, path));
     }
 
+    [Fact]
+    public void CollectsOneValueFromEveryAppInASinglePass()
+    {
+        var values = SteamConfigText.GetValuesUnder(
+            Document,
+            ["UserLocalConfigStore", "Software", "Valve", "Steam", "apps"],
+            "LastPlayed");
+
+        Assert.Equal("1786305709", values["2357570"]);
+        Assert.Equal("1700000000", values["440"]);
+        Assert.Equal(2, values.Count);
+    }
+
+    [Fact]
+    public void LeavesOutAppsThatDoNotSetTheValue()
+    {
+        var values = SteamConfigText.GetValuesUnder(
+            Document,
+            ["UserLocalConfigStore", "Software", "Valve", "Steam", "apps"],
+            "LaunchOptions");
+
+        Assert.Equal(["2357570"], values.Keys);
+        Assert.Equal("PROTON_ENABLE_HDR=1 %command%", values["2357570"]);
+    }
+
+    [Fact]
+    public void UnescapesTheValuesItCollects()
+    {
+        var values = SteamConfigText.GetValuesUnder(
+            Document,
+            ["UserLocalConfigStore", "Software", "Valve"],
+            "CachedPrefs");
+
+        Assert.Equal("{\"a\":1,\"b\":\"two\"}", values["Steam"]);
+    }
+
     [Theory]
     [InlineData("plain", "plain")]
     [InlineData("has \"quotes\"", "has \\\"quotes\\\"")]

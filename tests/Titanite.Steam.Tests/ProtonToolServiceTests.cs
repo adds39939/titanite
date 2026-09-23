@@ -196,6 +196,57 @@ public sealed class ProtonToolServiceTests : IDisposable
         Assert.Null(build.Capabilities.Reads("PROTON_DLSS_UPGRADE"));
     }
 
+    [Fact]
+    public async Task HandsBackTheSameMappingsWhileTheConfigIsUntouched()
+    {
+        var service = CreateService();
+
+        Assert.Same(await service.GetAssignmentsAsync(), await service.GetAssignmentsAsync());
+    }
+
+    [Fact]
+    public async Task ReadsTheMappingsAgainOnceTheConfigChanges()
+    {
+        var service = CreateService();
+
+        await service.GetAssignmentsAsync();
+
+        WriteMappings(("0", "proton_experimental", 75), (Rematch.ToString(), "proton_experimental", 250));
+        Touch(Path.Combine(_root, "config", "config.vdf"));
+
+        Assert.Equal("proton_experimental", (await service.GetAssignmentsAsync()).For(SteamIds.For(Rematch)));
+    }
+
+    [Fact]
+    public async Task NoticesABuildInstalledWhileRunning()
+    {
+        var service = CreateService();
+
+        await service.GetCatalogueAsync();
+
+        InstallCustomTool("GE-Proton11-4", displayName: "GE-Proton11-4", layer: "proton",
+            version: "1785000000 GE-Proton11-4");
+
+        Assert.NotNull((await service.GetCatalogueAsync()).FindBuild("GE-Proton11-4"));
+    }
+
+    [Fact]
+    public async Task ReadsABuildsScriptAgainOnceItIsUpdated()
+    {
+        var service = CreateService();
+        var path = Path.Combine(_root, "compatibilitytools.d", "GE-Proton11-3");
+
+        Assert.False((await service.GetCatalogueAsync()).FindBuild("GE-Proton11-3")!.Capabilities.Reads("PROTON_FSR4_UPGRADE"));
+
+        WriteScript(path, "PROTON_LOG", "PROTON_FSR4_UPGRADE");
+        Touch(Path.Combine(path, "proton"));
+
+        Assert.True((await service.GetCatalogueAsync()).FindBuild("GE-Proton11-3")!.Capabilities.Reads("PROTON_FSR4_UPGRADE"));
+    }
+
+    private static void Touch(string path) =>
+        File.SetLastWriteTimeUtc(path, DateTime.UtcNow.AddMinutes(1));
+
     private void InstallValveTool(uint appId, string name, string installDir, string layer, string version)
     {
         var path = Path.Combine(_root, "steamapps", "common", installDir);

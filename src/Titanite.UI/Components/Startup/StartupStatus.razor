@@ -1,0 +1,7 @@
+@if (Startup.IsRunning)
+{
+    <span class="startup-status" role="status">
+        <SpinnerIcon/>
+        <span>@Startup.Activity</span>
+    </span>
+}

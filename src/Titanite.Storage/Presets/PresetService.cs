@@ -13,157 +13,133 @@ public sealed class PresetService(
     IGameLauncher launcher,
     ILogger<PresetService> logger) : IPresetService
 {
+    private const int ReconcileAttempts = 3;
+
     private readonly SemaphoreSlim _lock = new(1, 1);
+    private readonly SemaphoreSlim _updating = new(1, 1);
 
     private StoredPresets? _presets;
+    private long _version;
 
     public async Task<IReadOnlyList<Preset>> GetAllAsync(CancellationToken cancellationToken = default) =>
         (await LoadAsync(cancellationToken).ConfigureAwait(false)).InOrder();
 
     public async Task<Preset> GetAsync(string id, CancellationToken cancellationToken = default) =>
-        (await GetAllAsync(cancellationToken).ConfigureAwait(false))
-        .FirstOrDefault(preset => PresetId.Same(preset.Id, id))
-        ?? Preset.Global;
+        Find(await LoadAsync(cancellationToken).ConfigureAwait(false), id);
 
-    public async Task<Preset> CreateAsync(string name, CancellationToken cancellationToken = default)
-    {
-        var stored = await LoadAsync(cancellationToken).ConfigureAwait(false);
-
-        var clean = PresetName.Clean(name) is { Length: > 0 } given ? given : "New preset";
-
-        var created = new Preset
+    public Task<Preset> CreateAsync(string name, CancellationToken cancellationToken = default) =>
+        UpdateAsync(stored =>
         {
-            Id = Guid.NewGuid().ToString("N"),
-            Name = PresetName.Unique(clean, stored.InOrder())
-        };
+            var clean = PresetName.Clean(name) is { Length: > 0 } given ? given : "New preset";
 
-        await StoreAsync(
-                stored with { Presets = [.. stored.Presets, StoredPreset.From(created)] },
-                cancellationToken)
-            .ConfigureAwait(false);
+            var created = new Preset
+            {
+                Id = Guid.NewGuid().ToString("N"),
+                Name = PresetName.Unique(clean, stored.InOrder())
+            };
 
-        return created;
-    }
+            return (stored with { Presets = [.. stored.Presets, StoredPreset.From(created)] }, created);
+        }, cancellationToken);
 
-    public async Task<Preset> RenameAsync(string id, string name, CancellationToken cancellationToken = default)
-    {
-        var stored = await LoadAsync(cancellationToken).ConfigureAwait(false);
-        var existing = await GetAsync(id, cancellationToken).ConfigureAwait(false);
-
-        if (existing.IsGlobal || PresetName.Clean(name) is not { Length: > 0 } clean)
+    public Task<Preset> RenameAsync(string id, string name, CancellationToken cancellationToken = default) =>
+        UpdateAsync(stored =>
         {
-            return existing;
-        }
+            var existing = Find(stored, id);
 
-        var others = stored.InOrder().Where(preset => !PresetId.Same(preset.Id, id));
-        var renamed = existing with { Name = PresetName.Unique(clean, others) };
+            if (existing.IsGlobal || PresetName.Clean(name) is not { Length: > 0 } clean)
+            {
+                return (null, existing);
+            }
 
-        await StoreAsync(stored with { Presets = Replace(stored.Presets, renamed) }, cancellationToken)
-            .ConfigureAwait(false);
+            var others = stored.InOrder().Where(preset => !PresetId.Same(preset.Id, id));
+            var renamed = existing with { Name = PresetName.Unique(clean, others) };
 
-        return renamed;
-    }
+            return (stored with { Presets = Replace(stored.Presets, renamed) }, renamed);
+        }, cancellationToken);
 
-    public async Task DeleteAsync(string id, CancellationToken cancellationToken = default)
+    public Task DeleteAsync(string id, CancellationToken cancellationToken = default)
     {
         if (PresetId.IsGlobal(id))
         {
-            return;
+            return Task.CompletedTask;
         }
 
-        var stored = await LoadAsync(cancellationToken).ConfigureAwait(false);
-
-        await StoreAsync(
-                stored with
-                {
-                    Presets = [.. stored.Presets.Where(preset => !PresetId.Same(preset.Id, id))],
-                    Applied = stored.Applied
-                        .Where(pair => !PresetId.Same(pair.Value, id))
-                        .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal)
-                },
-                cancellationToken)
-            .ConfigureAwait(false);
+        return UpdateAsync(stored => stored with
+        {
+            Presets = [.. stored.Presets.Where(preset => !PresetId.Same(preset.Id, id))],
+            Applied = WithoutPreset(stored.Applied, id)
+        }, cancellationToken);
     }
 
-    public async Task<LaunchOptionsSaveResult> SaveAndApplyAsync(
+    public Task<LaunchOptionsSaveResult> SaveAndApplyAsync(
         Preset preset,
-        CancellationToken cancellationToken = default)
-    {
-        var stored = await LoadAsync(cancellationToken).ConfigureAwait(false);
-        var games = GamesUsing(stored, preset.Id);
-
-        if (games.Count == 0)
+        CancellationToken cancellationToken = default) =>
+        UpdateAsync<LaunchOptionsSaveResult>(async stored =>
         {
-            await StoreAsync(stored with { Presets = Replace(stored.Presets, preset) }, cancellationToken)
+            var games = GamesUsing(stored, preset.Id);
+            var saved = stored with { Presets = Replace(stored.Presets, preset) };
+
+            if (games.Count == 0)
+            {
+                return (saved, new LaunchOptionsSaveResult(LaunchOptionsSaveStatus.Saved));
+            }
+
+            var result = await launchOptions.SaveManyAsync(
+                    games.ToDictionary(game => game, _ => preset.Options),
+                    games.ToDictionary(game => game, _ => preset.CompatibilityTool),
+                    cancellationToken)
                 .ConfigureAwait(false);
 
-            return new LaunchOptionsSaveResult(LaunchOptionsSaveStatus.Saved);
-        }
-
-        var result = await launchOptions.SaveManyAsync(
-                games.ToDictionary(game => game, _ => preset.Options),
-                games.ToDictionary(game => game, _ => preset.CompatibilityTool),
-                cancellationToken)
-            .ConfigureAwait(false);
-
-        if (result.IsSuccess)
-        {
-            await StoreAsync(stored with { Presets = Replace(stored.Presets, preset) }, cancellationToken)
-                .ConfigureAwait(false);
+            if (!result.IsSuccess)
+            {
+                return (null, result);
+            }
 
             logger.LogInformation(
                 "Applied the preset {PresetName} to {GameCount} games.",
                 preset.Name,
                 games.Count);
-        }
 
-        return result;
-    }
+            return (saved, result);
+        }, cancellationToken);
 
-    public async Task ResetAsync(string id, CancellationToken cancellationToken = default)
-    {
-        var stored = await LoadAsync(cancellationToken).ConfigureAwait(false);
-        var preset = await GetAsync(id, cancellationToken).ConfigureAwait(false);
+    public Task ResetAsync(string id, CancellationToken cancellationToken = default) =>
+        UpdateAsync(stored =>
+        {
+            var emptied = Find(stored, id) with { Options = new(), CompatibilityTool = string.Empty };
 
-        var emptied = preset with { Options = new(), CompatibilityTool = string.Empty };
-
-        await StoreAsync(
-                stored with
-                {
-                    Presets = Replace(stored.Presets, emptied),
-                    Applied = stored.Applied
-                        .Where(pair => !PresetId.Same(pair.Value, id))
-                        .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal)
-                },
-                cancellationToken)
-            .ConfigureAwait(false);
-    }
+            return stored with
+            {
+                Presets = Replace(stored.Presets, emptied),
+                Applied = WithoutPreset(stored.Applied, id)
+            };
+        }, cancellationToken);
 
     public async Task<string?> AppliedToAsync(GameId id, CancellationToken cancellationToken = default) =>
         (await LoadAsync(cancellationToken).ConfigureAwait(false))
         .Applied
         .GetValueOrDefault(id.ToString());
 
-    public async Task ApplyAsync(GameId id, string? presetId, CancellationToken cancellationToken = default)
-    {
-        var stored = await LoadAsync(cancellationToken).ConfigureAwait(false);
-        var applied = stored.Applied.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
-        var key = id.ToString();
-
-        var known = presetId is { Length: > 0 } &&
-                    stored.Presets.Any(preset => PresetId.Same(preset.Id, presetId));
-
-        if (known)
+    public Task ApplyAsync(GameId id, string? presetId, CancellationToken cancellationToken = default) =>
+        UpdateAsync(stored =>
         {
-            applied[key] = presetId!;
-        }
-        else if (!applied.Remove(key))
-        {
-            return;
-        }
+            var applied = stored.Applied.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+            var key = id.ToString();
 
-        await StoreAsync(stored with { Applied = applied }, cancellationToken).ConfigureAwait(false);
-    }
+            var known = presetId is { Length: > 0 } &&
+                        stored.Presets.Any(preset => PresetId.Same(preset.Id, presetId));
+
+            if (known)
+            {
+                applied[key] = presetId!;
+            }
+            else if (!applied.Remove(key))
+            {
+                return null;
+            }
+
+            return stored with { Applied = applied };
+        }, cancellationToken);
 
     public async Task<IReadOnlyDictionary<GameId, string>> GetAssignmentsAsync(
         CancellationToken cancellationToken = default) =>
@@ -176,13 +152,44 @@ public sealed class PresetService(
 
     public async Task<int> ReconcileAsync(CancellationToken cancellationToken = default)
     {
-        var stored = await LoadAsync(cancellationToken).ConfigureAwait(false);
-
-        if (stored.Applied.Count == 0)
+        for (var attempt = 1; attempt <= ReconcileAttempts; attempt++)
         {
-            return 0;
+            var version = Interlocked.Read(ref _version);
+            var stored = await LoadAsync(cancellationToken).ConfigureAwait(false);
+
+            if (stored.Applied.Count == 0)
+            {
+                return 0;
+            }
+
+            var kept = await KeptAsync(stored, cancellationToken).ConfigureAwait(false);
+            var dropped = stored.Applied.Count - kept.Count;
+
+            if (dropped == 0)
+            {
+                return 0;
+            }
+
+            var committed = await UpdateAsync(latest => Interlocked.Read(ref _version) == version
+                    ? (latest with { Applied = kept }, true)
+                    : (null, false),
+                cancellationToken).ConfigureAwait(false);
+
+            if (committed)
+            {
+                return dropped;
+            }
+
+            logger.LogDebug("The presets changed while they were being checked, so they will be checked again.");
         }
 
+        return 0;
+    }
+
+    private async Task<Dictionary<string, string>> KeptAsync(
+        StoredPresets stored,
+        CancellationToken cancellationToken)
+    {
         var byId = stored.InOrder().ToDictionary(preset => preset.Id, StringComparer.OrdinalIgnoreCase);
         var assignments = stored.Assignments();
 
@@ -213,15 +220,48 @@ public sealed class PresetService(
             }
         }
 
-        var dropped = stored.Applied.Count - kept.Count;
-
-        if (dropped > 0)
-        {
-            await StoreAsync(stored with { Applied = kept }, cancellationToken).ConfigureAwait(false);
-        }
-
-        return dropped;
+        return kept;
     }
+
+    private Task UpdateAsync(Func<StoredPresets, StoredPresets?> change, CancellationToken cancellationToken) =>
+        UpdateAsync(stored => (change(stored), true), cancellationToken);
+
+    private Task<T> UpdateAsync<T>(
+        Func<StoredPresets, (StoredPresets? Changed, T Result)> change,
+        CancellationToken cancellationToken) =>
+        UpdateAsync<T>(stored => Task.FromResult(change(stored)), cancellationToken);
+
+    private async Task<T> UpdateAsync<T>(
+        Func<StoredPresets, Task<(StoredPresets? Changed, T Result)>> change,
+        CancellationToken cancellationToken)
+    {
+        await _updating.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+        try
+        {
+            var (changed, result) = await change(await LoadAsync(cancellationToken).ConfigureAwait(false))
+                .ConfigureAwait(false);
+
+            if (changed is not null)
+            {
+                await StoreAsync(changed, cancellationToken).ConfigureAwait(false);
+            }
+
+            return result;
+        }
+        finally
+        {
+            _updating.Release();
+        }
+    }
+
+    private static Preset Find(StoredPresets stored, string id) =>
+        stored.InOrder().FirstOrDefault(preset => PresetId.Same(preset.Id, id)) ?? Preset.Global;
+
+    private static Dictionary<string, string> WithoutPreset(IReadOnlyDictionary<string, string> applied, string id) =>
+        applied
+            .Where(pair => !PresetId.Same(pair.Value, id))
+            .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
 
     private static IReadOnlyList<GameId> GamesUsing(StoredPresets stored, string id) =>
     [
@@ -317,6 +357,7 @@ public sealed class PresetService(
                 cancellationToken).ConfigureAwait(false);
 
             _presets = sanitised;
+            Interlocked.Increment(ref _version);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {

@@ -58,6 +58,52 @@ public sealed class AppStartupServiceTests
     }
 
     [Fact]
+    public async Task RunsOnlyOnceHoweverOftenItIsStarted()
+    {
+        var service = CreateService(Step("first"));
+
+        await Task.WhenAll(service.RunAsync(), service.RunAsync());
+
+        Assert.Equal(["first"], _ran);
+    }
+
+    [Fact]
+    public async Task SaysWhatItIsDoingWithoutHoldingUpWhoeverStartedIt()
+    {
+        var release = new TaskCompletionSource();
+        var step = A.Fake<IStartupStep>();
+
+        A.CallTo(() => step.Activity).Returns("Connecting to Steam…");
+        A.CallTo(() => step.RunAsync(A<CancellationToken>._)).Returns(release.Task);
+
+        var service = CreateService(step);
+        var run = service.RunAsync();
+
+        Assert.False(run.IsCompleted);
+        Assert.True(service.IsRunning);
+        Assert.Equal("Connecting to Steam…", await ActivityOnceStarted(service));
+
+        release.SetResult();
+        await run;
+
+        Assert.False(service.IsRunning);
+        Assert.Null(service.Activity);
+    }
+
+    [Fact]
+    public async Task TellsListenersOnceItHasFinished()
+    {
+        var service = CreateService(Step("first"));
+        var finished = false;
+
+        service.Changed += () => finished = !service.IsRunning;
+
+        await service.RunAsync();
+
+        Assert.True(finished);
+    }
+
+    [Fact]
     public void RunsTheLauncherCheckBeforeThePresetCheck()
     {
         var services = new ServiceCollection();
@@ -70,6 +116,16 @@ public sealed class AppStartupServiceTests
         var names = provider.GetServices<IStartupStep>().Select(step => step.Name);
 
         Assert.Equal(["The launcher debugging check", "The preset check"], names);
+    }
+
+    private static async Task<string?> ActivityOnceStarted(AppStartupService service)
+    {
+        for (var attempt = 0; attempt < 100 && service.Activity is null; attempt++)
+        {
+            await Task.Delay(10);
+        }
+
+        return service.Activity;
     }
 
     private IStartupStep Step(string name)

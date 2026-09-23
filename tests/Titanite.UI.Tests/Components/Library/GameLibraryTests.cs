@@ -1,6 +1,7 @@
 using AngleSharp.Dom;
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
+using Titanite.Abstractions.Hosting;
 using Titanite.Abstractions.Launchers;
 using Titanite.Abstractions.Presets;
 using Titanite.Abstractions.Settings;
@@ -15,10 +16,9 @@ namespace Titanite.UI.Tests.Components.Library;
 public sealed class GameLibraryTests : BunitContext
 {
     private readonly IGameLibrary _library = A.Fake<IGameLibrary>();
-
     private readonly IAppSettingsService _settings = A.Fake<IAppSettingsService>();
-
     private readonly IPresetService _presets = A.Fake<IPresetService>();
+    private readonly IAppStartupService _startup = A.Fake<IAppStartupService>();
 
     public GameLibraryTests()
     {
@@ -33,6 +33,7 @@ public sealed class GameLibraryTests : BunitContext
 
         Services.AddSingleton(_library);
         Services.AddSingleton(_settings);
+        Services.AddSingleton(_startup);
         Services.AddSingleton(A.Fake<IGameArtwork>());
         Services.AddTransient<IGameLibraryPresenter>(_ =>
             new GameLibraryPresenter(_library, _settings, _presets));
@@ -295,6 +296,32 @@ public sealed class GameLibraryTests : BunitContext
         library.FindAll(".view-button")[(int)LibraryViewMode.Grid].Click();
 
         Assert.Equal("Anticheat", library.Find(".tile-tags .tag-preset").TextContent);
+    }
+
+    [Fact]
+    public void PicksUpPresetsTheStartupCheckDropped()
+    {
+        Installed(Game(2357570, "Overwatch"));
+
+        A.CallTo(() => _presets.GetAllAsync(A<CancellationToken>._))
+            .Returns<IReadOnlyList<Preset>>([Preset.Global, new Preset { Id = "a", Name = "Anticheat" }]);
+
+        A.CallTo(() => _presets.GetAssignmentsAsync(A<CancellationToken>._))
+            .Returns<IReadOnlyDictionary<GameId, string>>(new Dictionary<GameId, string>
+            {
+                [new GameId("steam", "2357570")] = "a"
+            });
+
+        var library = Render<GameLibrary>();
+
+        Assert.Single(library.FindAll(".tag-preset"));
+
+        A.CallTo(() => _presets.GetAssignmentsAsync(A<CancellationToken>._))
+            .Returns<IReadOnlyDictionary<GameId, string>>(new Dictionary<GameId, string>());
+
+        _startup.Changed += Raise.FreeForm<Action>.With();
+
+        library.WaitForAssertion(() => Assert.Empty(library.FindAll(".tag-preset")));
     }
 
     [Fact]

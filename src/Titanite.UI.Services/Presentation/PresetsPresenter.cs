@@ -10,8 +10,9 @@ public sealed class PresetsPresenter(IPresetService presets, ICompatibilityTools
     : IPresetsPresenter
 {
     private string _savedOptions = string.Empty;
-
     private string _savedCompatTool = CompatibilityTool.Inherit;
+    private LaunchOptions? _formattedEditing;
+    private string _editingText = string.Empty;
 
     public IReadOnlyList<Preset> Presets { get; private set; } = [Preset.Global];
 
@@ -45,7 +46,21 @@ public sealed class PresetsPresenter(IPresetService presets, ICompatibilityTools
         !string.Equals(CompatTool, _savedCompatTool, StringComparison.OrdinalIgnoreCase);
 
     public bool HasChanges =>
-        !string.Equals(Editing.Format(), _savedOptions, StringComparison.Ordinal) || CompatToolChanged;
+        !string.Equals(EditingText, _savedOptions, StringComparison.Ordinal) || CompatToolChanged;
+
+    private string EditingText
+    {
+        get
+        {
+            if (!ReferenceEquals(_formattedEditing, Editing))
+            {
+                _editingText = Editing.Format();
+                _formattedEditing = Editing;
+            }
+
+            return _editingText;
+        }
+    }
 
     public bool HasAnythingToReset => _savedOptions.Length > 0 || _savedCompatTool.Length > 0;
 
@@ -220,7 +235,7 @@ public sealed class PresetsPresenter(IPresetService presets, ICompatibilityTools
             if (result.IsSuccess)
             {
                 Presets = await presets.GetAllAsync(cancellationToken);
-                _savedOptions = Editing.Format();
+                _savedOptions = EditingText;
                 _savedCompatTool = CompatTool;
 
                 Status = StatusMessage.Success(AppliedCount == 0
@@ -275,7 +290,7 @@ public sealed class PresetsPresenter(IPresetService presets, ICompatibilityTools
 
         Editing = preset.Options;
         CompatTool = preset.CompatibilityTool;
-        _savedOptions = Editing.Format();
+        _savedOptions = EditingText;
         _savedCompatTool = CompatTool;
 
         AppliedCount = (await presets.GamesUsingAsync(SelectedId, cancellationToken)).Count;

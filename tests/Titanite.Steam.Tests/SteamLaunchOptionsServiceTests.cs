@@ -128,6 +128,12 @@ public sealed class SteamLaunchOptionsServiceTests : IDisposable
         A.CallTo(() => session.GetAppDetailsAsync(A<uint>._, A<CancellationToken>._))
             .ReturnsLazily((uint appId, CancellationToken _) => held.GetValueOrDefault(appId));
 
+        A.CallTo(() => session.GetAppDetailsAsync(A<IReadOnlyCollection<uint>>._, A<CancellationToken>._))
+            .ReturnsLazily((IReadOnlyCollection<uint> appIds, CancellationToken _) =>
+                (IReadOnlyDictionary<uint, SteamAppDetails>)appIds
+                    .Where(held.ContainsKey)
+                    .ToDictionary(appId => appId, appId => held[appId]));
+
         A.CallTo(() => session.SetLaunchOptionsAsync(A<uint>._, A<string>._, A<CancellationToken>._))
             .ReturnsLazily((uint appId, string launchOptions, CancellationToken _) =>
                 Accept(held, refusing, appId, details => details with { LaunchOptions = launchOptions }));
@@ -162,8 +168,11 @@ public sealed class SteamLaunchOptionsServiceTests : IDisposable
     {
         var session = A.Fake<ISteamClientSession>();
 
-        A.CallTo(() => session.GetAppDetailsAsync(A<uint>._, A<CancellationToken>._))
-            .Returns(new SteamAppDetails("something else entirely", string.Empty));
+        A.CallTo(() => session.GetAppDetailsAsync(A<IReadOnlyCollection<uint>>._, A<CancellationToken>._))
+            .ReturnsLazily((IReadOnlyCollection<uint> appIds, CancellationToken _) =>
+                (IReadOnlyDictionary<uint, SteamAppDetails>)appIds.ToDictionary(
+                    appId => appId,
+                    _ => new SteamAppDetails("something else entirely", string.Empty)));
 
         A.CallTo(() => session.SetLaunchOptionsAsync(A<uint>._, A<string>._, A<CancellationToken>._))
             .Returns(true);
@@ -180,10 +189,15 @@ public sealed class SteamLaunchOptionsServiceTests : IDisposable
         var reads = 0;
         var held = string.Empty;
 
-        A.CallTo(() => session.GetAppDetailsAsync(A<uint>._, A<CancellationToken>._))
-            .ReturnsLazily(() => new SteamAppDetails(
-                string.Empty,
-                ++reads <= staleReads ? "proton_9" : held));
+        A.CallTo(() => session.GetAppDetailsAsync(A<IReadOnlyCollection<uint>>._, A<CancellationToken>._))
+            .ReturnsLazily((IReadOnlyCollection<uint> appIds, CancellationToken _) =>
+            {
+                var compatTool = ++reads <= staleReads ? "proton_9" : held;
+
+                return (IReadOnlyDictionary<uint, SteamAppDetails>)appIds.ToDictionary(
+                    appId => appId,
+                    _ => new SteamAppDetails(string.Empty, compatTool));
+            });
 
         A.CallTo(() => session.SetLaunchOptionsAsync(A<uint>._, A<string>._, A<CancellationToken>._))
             .Returns(true);
@@ -327,7 +341,7 @@ public sealed class SteamLaunchOptionsServiceTests : IDisposable
             .SaveManyAsync(new Dictionary<GameId, LaunchOptions>(), OnlyTool(AppId, "GE-Proton11-3"));
 
         Assert.True(result.IsSuccess);
-        A.CallTo(() => session.GetAppDetailsAsync(A<uint>._, A<CancellationToken>._))
+        A.CallTo(() => session.GetAppDetailsAsync(A<IReadOnlyCollection<uint>>._, A<CancellationToken>._))
             .MustHaveHappened(3, Times.OrMore);
     }
 
@@ -369,18 +383,35 @@ public sealed class SteamLaunchOptionsServiceTests : IDisposable
     [Fact]
     public async Task ReadsAWholeBatchThroughOneConnection()
     {
-        var bridge = Bridge(Session(new Dictionary<uint, SteamAppDetails>
+        var session = Session(new Dictionary<uint, SteamAppDetails>
         {
             [AppId] = new("A=1 %command%", string.Empty),
             [AppId + 1] = new("B=1 %command%", string.Empty)
-        }));
+        });
+
+        var bridge = Bridge(session);
 
         var found = await CreateService(SteamClient(running: true), bridge: bridge)
             .GetManyAsync([Game(AppId), Game(AppId + 1)]);
 
         Connect(bridge).MustHaveHappenedOnceExactly();
+        A.CallTo(() => session.GetAppDetailsAsync(A<IReadOnlyCollection<uint>>._, A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
         Assert.Equal("A=1 %command%", found[Game(AppId)].Format());
         Assert.Equal("B=1 %command%", found[Game(AppId + 1)].Format());
+    }
+
+    [Fact]
+    public async Task ReadsTheFileAgainOnceSteamRewritesIt()
+    {
+        var service = CreateService(SteamClient());
+
+        Assert.Equal("PROTON_ENABLE_HDR=1 %command%", (await service.GetAsync(Game(AppId))).Format());
+
+        File.WriteAllText(ConfigPath, Document.Replace("PROTON_ENABLE_HDR=1", "MANGOHUD=1"));
+        File.SetLastWriteTimeUtc(ConfigPath, DateTime.UtcNow.AddMinutes(1));
+
+        Assert.Equal("MANGOHUD=1 %command%", (await service.GetAsync(Game(AppId))).Format());
     }
 
     [Fact]
@@ -485,6 +516,16 @@ public sealed class SteamLaunchOptionsServiceTests : IDisposable
 
         Assert.Equal(AvailabilityStatus.Available, availability.Status);
         Assert.Null(availability.Explanation);
+    }
+
+    [Fact]
+    public async Task LeavesTheHostAloneWhileSteamIsAnswering()
+    {
+        var client = SteamClient(running: true);
+
+        await CreateService(client, bridge: Bridge(Session())).GetAvailabilityAsync();
+
+        A.CallTo(() => client.IsRunning()).MustNotHaveHappened();
     }
 
     [Fact]

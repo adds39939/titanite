@@ -3,6 +3,7 @@ namespace Titanite.Core.Launch;
 public sealed class SettingCatalog
 {
     private readonly Dictionary<string, SettingDefinition> _byVariable;
+    private readonly Dictionary<string, IReadOnlyList<SettingDefinition>> _byCategory;
 
     public SettingCatalog(
         IEnumerable<SettingCategory> categories,
@@ -17,6 +18,13 @@ public sealed class SettingCatalog
         {
             _byVariable.TryAdd(definition.Variable, definition);
         }
+
+        _byCategory = new Dictionary<string, IReadOnlyList<SettingDefinition>>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var category in Categories)
+        {
+            _byCategory.TryAdd(category.Id, Collect(category));
+        }
     }
 
     public static SettingCatalog Empty { get; } = new([], []);
@@ -28,6 +36,9 @@ public sealed class SettingCatalog
     public SettingDefinition? Find(string variable) => _byVariable.GetValueOrDefault(variable);
 
     public IReadOnlyList<SettingDefinition> In(SettingCategory category) =>
+        _byCategory.TryGetValue(category.Id, out var held) ? held : Collect(category);
+
+    private List<SettingDefinition> Collect(SettingCategory category) =>
         All.Where(definition => definition.Category.Is(category.Id)).ToList();
 
     public IReadOnlyList<SettingGroup> GroupsIn(SettingCategory category) =>

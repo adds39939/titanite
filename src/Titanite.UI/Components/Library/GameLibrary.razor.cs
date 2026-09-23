@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Titanite.Abstractions.Hosting;
 using Titanite.Core.Games;
 using Titanite.Core.Settings;
 using Titanite.UI.Services.Presentation;
@@ -37,6 +38,9 @@ public partial class GameLibrary : ComponentBase, IAsyncDisposable
     [Inject]
     private IJSRuntime JS { get; set; } = null!;
 
+    [Inject]
+    private IAppStartupService Startup { get; set; } = null!;
+
     private bool IsMeasuringGrid => _columns == 0;
 
     private ICollection<GameEntry[]> GridRows
@@ -68,6 +72,7 @@ public partial class GameLibrary : ComponentBase, IAsyncDisposable
     protected override Task OnInitializedAsync()
     {
         _startingSearch = Presenter.SearchTerm;
+        Startup.Changed += OnStartupChanged;
 
         return Presenter.LoadAsync();
     }
@@ -110,6 +115,8 @@ public partial class GameLibrary : ComponentBase, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        Startup.Changed -= OnStartupChanged;
+
         _pendingSearch?.Cancel();
         _pendingSearch?.Dispose();
 
@@ -127,6 +134,21 @@ public partial class GameLibrary : ComponentBase, IAsyncDisposable
         }
 
         _self?.Dispose();
+    }
+
+    private void OnStartupChanged()
+    {
+        if (Startup.IsRunning)
+        {
+            return;
+        }
+
+        _ = InvokeAsync(async () =>
+        {
+            await Presenter.LoadAsync();
+
+            StateHasChanged();
+        });
     }
 
     private async Task OnSearchChanged(ChangeEventArgs args)

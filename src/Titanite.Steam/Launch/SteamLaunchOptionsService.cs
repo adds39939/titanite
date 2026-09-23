@@ -17,14 +17,16 @@ internal sealed class SteamLaunchOptionsService(
     ILogger<SteamLaunchOptionsService> logger) : ILaunchOptionsStore, ILauncherAvailabilityProbe
 {
     private const int SettleAttempts = 5;
+    private const string LaunchOptionsKey = "LaunchOptions";
 
     private static readonly TimeSpan SettleInterval = TimeSpan.FromMilliseconds(400);
-
     private static readonly TimeSpan StartTimeout = TimeSpan.FromSeconds(90);
-
     private static readonly TimeSpan ReadyInterval = TimeSpan.FromSeconds(1);
-
     private static readonly IReadOnlyDictionary<GameId, string> NoCompatTools = new Dictionary<GameId, string>();
+    private static readonly IReadOnlyDictionary<string, string> NoLaunchOptions = new Dictionary<string, string>();
+    private static readonly string[] AppsPath = ["UserLocalConfigStore", "Software", "Valve", "Steam", "apps"];
+
+    private readonly FileStampCache<IReadOnlyDictionary<string, string>> _userLaunchOptions = new();
 
     public async Task<LaunchOptions> GetAsync(GameId id, CancellationToken cancellationToken = default) =>
         (await GetManyAsync([id], cancellationToken).ConfigureAwait(false)).GetValueOrDefault(id)
@@ -42,77 +44,83 @@ internal sealed class SteamLaunchOptionsService(
             return found;
         }
 
-        var outstanding = new List<uint>();
-
         await using (var session = await bridge.ConnectAsync(cancellationToken).ConfigureAwait(false))
         {
-            foreach (var appId in appIds)
+            if (session is not null)
             {
-                if (session is not null &&
-                    await session.GetAppDetailsAsync(appId, cancellationToken).ConfigureAwait(false) is { } details)
+                var details = await session.GetAppDetailsAsync(appIds, cancellationToken).ConfigureAwait(false);
+
+                foreach (var (appId, held) in details)
                 {
-                    found[SteamIds.For(appId)] = LaunchOptions.Parse(details.LaunchOptions);
-                }
-                else
-                {
-                    outstanding.Add(appId);
+                    found[SteamIds.For(appId)] = LaunchOptions.Parse(held.LaunchOptions);
                 }
             }
         }
+
+        var outstanding = appIds.Where(appId => !found.ContainsKey(SteamIds.For(appId))).ToList();
 
         if (outstanding.Count == 0)
         {
             return found;
         }
 
-        var document = await ReadUserConfigAsync(cancellationToken).ConfigureAwait(false);
+        var stored = await ReadUserLaunchOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         foreach (var appId in outstanding)
         {
-            found[SteamIds.For(appId)] = document is null
-                ? new LaunchOptions()
-                : LaunchOptions.Parse(SteamConfigText.GetValue(document, PathTo(appId)));
+            found[SteamIds.For(appId)] = LaunchOptions.Parse(stored.GetValueOrDefault(appId.ToString()));
         }
 
         return found;
     }
 
-    private async Task<string?> ReadUserConfigAsync(CancellationToken cancellationToken)
+    private async Task<IReadOnlyDictionary<string, string>> ReadUserLaunchOptionsAsync(
+        CancellationToken cancellationToken)
     {
         if (FindUserConfig() is not { } configPath)
         {
-            return null;
+            return NoLaunchOptions;
         }
 
         try
         {
-            return await File.ReadAllTextAsync(configPath, cancellationToken).ConfigureAwait(false);
+            return await _userLaunchOptions
+                .GetAsync(configPath, ReadLaunchOptionsAsync, cancellationToken)
+                .ConfigureAwait(false);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
             logger.LogWarning(e, "Could not read {ConfigPath}.", configPath);
 
-            return null;
+            return NoLaunchOptions;
         }
     }
 
+    private static async Task<IReadOnlyDictionary<string, string>> ReadLaunchOptionsAsync(
+        string configPath,
+        CancellationToken cancellationToken) =>
+        SteamConfigText.GetValuesUnder(
+            await File.ReadAllTextAsync(configPath, cancellationToken).ConfigureAwait(false),
+            AppsPath,
+            LaunchOptionsKey);
+
     public async Task<LauncherAvailability> GetAvailabilityAsync(CancellationToken cancellationToken = default)
     {
-        if (!steamClient.IsRunning())
-        {
-            return new LauncherAvailability(
-                AvailabilityStatus.Available,
-                "Steam is not running — saving will start Steam and apply the changes.");
-        }
-
         await using var session = await bridge.ConnectAsync(cancellationToken).ConfigureAwait(false);
 
-        return session is null
+        if (session is not null)
+        {
+            return new LauncherAvailability(AvailabilityStatus.Available, null);
+        }
+
+        return steamClient.IsRunning()
             ? new LauncherAvailability(
                 AvailabilityStatus.Blocked,
                 "Steam is running but is not answering. It reads the request to offer its debugging " +
                 "interface only as it starts, so restarting Steam should settle it.")
-            : new LauncherAvailability(AvailabilityStatus.Available, null);
+            : new LauncherAvailability(
+                AvailabilityStatus.Available,
+                "Steam is not running — saving will start Steam and apply the changes.");
     }
 
     public Task<LaunchOptionsSaveResult> SaveAsync(
@@ -308,15 +316,12 @@ internal sealed class SteamLaunchOptionsService(
                 await Task.Delay(SettleInterval, cancellationToken).ConfigureAwait(false);
             }
 
-            var readBack = new Dictionary<uint, SteamAppDetails?>();
-
-            foreach (var appId in outstanding.Select(expectation => expectation.AppId).Distinct())
-            {
-                readBack[appId] = await session.GetAppDetailsAsync(appId, cancellationToken).ConfigureAwait(false);
-            }
+            var readBack = await session
+                .GetAppDetailsAsync([.. outstanding.Select(expectation => expectation.AppId).Distinct()], cancellationToken)
+                .ConfigureAwait(false);
 
             outstanding.RemoveAll(expectation =>
-                readBack[expectation.AppId] is { } details && expectation.Matches(details));
+                readBack.TryGetValue(expectation.AppId, out var details) && expectation.Matches(details));
         }
 
         return outstanding.Select(expectation => expectation.Description).ToList();
@@ -324,8 +329,6 @@ internal sealed class SteamLaunchOptionsService(
 
     private sealed record Expectation(uint AppId, string Description, Func<SteamAppDetails, bool> Matches);
 
-    private static string[] PathTo(uint appId) =>
-        ["UserLocalConfigStore", "Software", "Valve", "Steam", "apps", appId.ToString(), "LaunchOptions"];
 
     private string? FindUserConfig()
     {

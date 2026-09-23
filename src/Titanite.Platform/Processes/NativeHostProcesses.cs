@@ -10,7 +10,14 @@ public sealed class NativeHostProcesses(ILogger<NativeHostProcesses> logger) : I
     {
         try
         {
-            return Process.GetProcessesByName(processName).Length > 0;
+            var processes = Process.GetProcessesByName(processName);
+
+            foreach (var process in processes)
+            {
+                process.Dispose();
+            }
+
+            return processes.Length > 0;
         }
         catch (Exception e) when (e is InvalidOperationException or NotSupportedException)
         {

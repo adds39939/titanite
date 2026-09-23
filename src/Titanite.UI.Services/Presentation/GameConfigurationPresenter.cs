@@ -18,12 +18,11 @@ public sealed class GameConfigurationPresenter(
     IFileManagerService fileManager) : IGameConfigurationPresenter
 {
     private GameId _loaded;
-
     private string _savedOptions = string.Empty;
-
     private string _savedCompatTool = CompatibilityTool.Inherit;
-
     private string? _savedPreset;
+    private LaunchOptions? _formattedEditing;
+    private string _editingText = string.Empty;
 
     public GameEntry? Entry { get; private set; }
 
@@ -125,9 +124,23 @@ public sealed class GameConfigurationPresenter(
     public bool PresetChanged => !PresetId.Same(AppliedPresetId, _savedPreset);
 
     public bool HasChanges =>
-        !string.Equals(Editing.Format(), _savedOptions, StringComparison.Ordinal) ||
+        !string.Equals(EditingText, _savedOptions, StringComparison.Ordinal) ||
         PresetChanged ||
         CompatToolChanged;
+
+    private string EditingText
+    {
+        get
+        {
+            if (!ReferenceEquals(_formattedEditing, Editing))
+            {
+                _editingText = Editing.Format();
+                _formattedEditing = Editing;
+            }
+
+            return _editingText;
+        }
+    }
 
     public bool HasAnythingToReset => _savedOptions.Length > 0 || _savedPreset is { Length: > 0 };
 
@@ -180,7 +193,7 @@ public sealed class GameConfigurationPresenter(
             }
 
             Editing = await launchOptions.GetAsync(id, cancellationToken);
-            _savedOptions = Editing.Format();
+            _savedOptions = EditingText;
 
             Presets = await presets.GetAllAsync(cancellationToken);
 
@@ -263,7 +276,7 @@ public sealed class GameConfigurationPresenter(
 
             if (result.IsSuccess)
             {
-                _savedOptions = Editing.Format();
+                _savedOptions = EditingText;
                 _savedCompatTool = CompatTool;
 
                 await presets.ApplyAsync(entry.Id, AppliedPresetId, cancellationToken);

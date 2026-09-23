@@ -6,12 +6,11 @@ namespace Titanite.Steam.Launch;
 
 internal sealed class SteamAvailabilityWatcher : IGameLauncherAvailabilityWatcher, IDisposable
 {
-    private static readonly TimeSpan Interval = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan AnsweringInterval = TimeSpan.FromSeconds(3);
+    private static readonly TimeSpan SilentInterval = TimeSpan.FromSeconds(10);
 
     private readonly ILauncherAvailabilityProbe _launchOptions;
-
     private readonly ILogger<SteamAvailabilityWatcher> _logger;
-
     private readonly CancellationTokenSource _stopping = new();
 
     private LauncherAvailability _current = LauncherAvailability.Unknown;
@@ -32,11 +31,9 @@ internal sealed class SteamAvailabilityWatcher : IGameLauncherAvailabilityWatche
 
     private async Task WatchAsync()
     {
-        using var timer = new PeriodicTimer(Interval);
-
         try
         {
-            do
+            while (true)
             {
                 var latest = await ReadAsync().ConfigureAwait(false);
 
@@ -46,8 +43,12 @@ internal sealed class SteamAvailabilityWatcher : IGameLauncherAvailabilityWatche
 
                     Changed?.Invoke(latest);
                 }
+
+                var answering = latest is { IsAvailable: true, Explanation: null };
+
+                await Task.Delay(answering ? AnsweringInterval : SilentInterval, _stopping.Token)
+                    .ConfigureAwait(false);
             }
-            while (await timer.WaitForNextTickAsync(_stopping.Token).ConfigureAwait(false));
         }
         catch (OperationCanceledException)
         {

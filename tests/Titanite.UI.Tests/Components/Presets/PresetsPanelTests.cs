@@ -1,5 +1,6 @@
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
+using Titanite.Abstractions.Hosting;
 using Titanite.Abstractions.Launchers;
 using Titanite.Abstractions.Presets;
 using Titanite.Abstractions.Settings;
@@ -17,9 +18,8 @@ namespace Titanite.UI.Tests.Components.Presets;
 public sealed class PresetsPanelTests : BunitContext
 {
     private readonly IPresetService _presets = A.Fake<IPresetService>();
-
     private readonly ICompatibilityTools _compatibilityTools = A.Fake<ICompatibilityTools>();
-
+    private readonly IAppStartupService _startup = A.Fake<IAppStartupService>();
     private readonly List<Preset> _stored = [Preset.Global];
 
     public PresetsPanelTests()
@@ -55,6 +55,7 @@ public sealed class PresetsPanelTests : BunitContext
         Services.AddSingleton(settings);
         Services.AddSingleton(A.Fake<IGameLauncher>());
         Services.AddSingleton(Available());
+        Services.AddSingleton(_startup);
         Services.AddSingleton(new SettingCatalog([], []));
         Services.AddSingleton(A.Fake<IUnsavedChanges>());
         Services.AddTransient<IPresetsPresenter>(_ =>
@@ -200,6 +201,32 @@ public sealed class PresetsPanelTests : BunitContext
         var panel = Render<PresetsPanel>();
 
         Assert.Contains("2 games use Global", Collapsed(panel.Find(".preset-note").TextContent));
+    }
+
+    [Fact]
+    public void WaitsForStartupBeforeSaving()
+    {
+        A.CallTo(() => _startup.IsRunning).Returns(true);
+        A.CallTo(() => _startup.Activity).Returns("Connecting to Steam…");
+
+        var panel = Render<PresetsPanel>();
+
+        Assert.Equal(
+            "Connecting to Steam… Saving is available once that is done.",
+            panel.Find(".footer-status .status-warning").TextContent);
+    }
+
+    [Fact]
+    public void LetsSavingThroughOnceStartupIsDone()
+    {
+        A.CallTo(() => _startup.IsRunning).Returns(true);
+
+        var panel = Render<PresetsPanel>();
+
+        A.CallTo(() => _startup.IsRunning).Returns(false);
+        _startup.Changed += Raise.FreeForm<Action>.With();
+
+        panel.WaitForAssertion(() => Assert.Empty(panel.FindAll(".footer-status .status-warning")));
     }
 
     private static string Collapsed(string text) =>

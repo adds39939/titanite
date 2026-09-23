@@ -14,10 +14,14 @@ internal sealed partial class ProtonToolService(
     ILogger<ProtonToolService> logger) : IProtonToolService
 {
     private const uint DefaultAppId = 0;
-
     private const string ProtonLayerName = "proton";
-
     private const string RegistrationMarker = "Registering tool ";
+
+    private readonly FileStampCache<CompatibilityToolAssignments> _assignments = new();
+    private readonly FileStampCache<IReadOnlyDictionary<uint, string>> _registeredNames = new();
+    private readonly FileStampCache<VObject?> _manifests = new();
+    private readonly FileStampCache<ProtonCapabilities> _capabilities = new();
+    private readonly FileStampCache<string?> _versions = new();
 
     public async Task<ProtonCatalogue> GetCatalogueAsync(CancellationToken cancellationToken = default)
     {
@@ -49,15 +53,17 @@ internal sealed partial class ProtonToolService(
         };
     }
 
-    public async Task<CompatibilityToolAssignments> GetAssignmentsAsync(
-        CancellationToken cancellationToken = default)
-    {
-        if (installLocator.Locate() is not { } steamRoot)
-        {
-            return CompatibilityToolAssignments.None;
-        }
+    public Task<CompatibilityToolAssignments> GetAssignmentsAsync(
+        CancellationToken cancellationToken = default) =>
+        installLocator.Locate() is { } steamRoot
+            ? _assignments.GetAsync(SteamCompatTools.ConfigPathIn(steamRoot), ReadAssignmentsAsync, cancellationToken)
+            : Task.FromResult(CompatibilityToolAssignments.None);
 
-        var mappings = await ReadMappingsAsync(steamRoot, cancellationToken).ConfigureAwait(false);
+    private async Task<CompatibilityToolAssignments> ReadAssignmentsAsync(
+        string configPath,
+        CancellationToken cancellationToken)
+    {
+        var mappings = await ReadMappingsAsync(configPath, cancellationToken).ConfigureAwait(false);
 
         return new CompatibilityToolAssignments
         {
@@ -137,7 +143,7 @@ internal sealed partial class ProtonToolService(
         foreach (var directory in directories)
         {
             var manifestPath = Path.Combine(directory, "compatibilitytool.vdf");
-            var manifest = await SteamVdf.TryReadAsync(manifestPath, cancellationToken).ConfigureAwait(false);
+            var manifest = await ReadManifestAsync(manifestPath, cancellationToken).ConfigureAwait(false);
             var tools = manifest?.GetObject("compat_tools");
 
             if (tools is null)
@@ -179,10 +185,9 @@ internal sealed partial class ProtonToolService(
     }
 
     private async Task<IReadOnlyDictionary<uint, string>> ReadMappingsAsync(
-        string steamRoot,
+        string configPath,
         CancellationToken cancellationToken)
     {
-        var configPath = SteamCompatTools.ConfigPathIn(steamRoot);
         var document = await SteamVdf.TryReadAsync(configPath, cancellationToken).ConfigureAwait(false);
 
         var mappings = SteamCompatTools.MappingRoot
@@ -218,11 +223,18 @@ internal sealed partial class ProtonToolService(
         return result;
     }
 
-    private async Task<IReadOnlyDictionary<uint, string>> ReadRegisteredNamesAsync(
+    private Task<IReadOnlyDictionary<uint, string>> ReadRegisteredNamesAsync(
         string steamRoot,
+        CancellationToken cancellationToken) =>
+        _registeredNames.GetAsync(
+            Path.Combine(steamRoot, "logs", "compat_log.txt"),
+            ReadRegistrationsAsync,
+            cancellationToken);
+
+    private async Task<IReadOnlyDictionary<uint, string>> ReadRegistrationsAsync(
+        string logPath,
         CancellationToken cancellationToken)
     {
-        var logPath = Path.Combine(steamRoot, "logs", "compat_log.txt");
         var names = new Dictionary<uint, string>();
 
         try
@@ -263,10 +275,13 @@ internal sealed partial class ProtonToolService(
         return names;
     }
 
-    private static async Task<bool> IsProtonAsync(string installPath, CancellationToken cancellationToken)
+    private Task<VObject?> ReadManifestAsync(string manifestPath, CancellationToken cancellationToken) =>
+        _manifests.GetAsync(manifestPath, SteamVdf.TryReadAsync, cancellationToken);
+
+    private async Task<bool> IsProtonAsync(string installPath, CancellationToken cancellationToken)
     {
         var manifestPath = Path.Combine(installPath, "toolmanifest.vdf");
-        var manifest = await SteamVdf.TryReadAsync(manifestPath, cancellationToken).ConfigureAwait(false);
+        var manifest = await ReadManifestAsync(manifestPath, cancellationToken).ConfigureAwait(false);
 
         return string.Equals(
             manifest?.GetString("compatmanager_layer_name"),
@@ -274,9 +289,14 @@ internal sealed partial class ProtonToolService(
             StringComparison.OrdinalIgnoreCase);
     }
 
-    private async Task<ProtonCapabilities> ProbeAsync(string installPath, CancellationToken cancellationToken)
+    private Task<ProtonCapabilities> ProbeAsync(string installPath, CancellationToken cancellationToken) =>
+        _capabilities.GetAsync(Path.Combine(installPath, "proton"), ReadCapabilitiesAsync, cancellationToken);
+
+    private async Task<ProtonCapabilities> ReadCapabilitiesAsync(
+        string scriptPath,
+        CancellationToken cancellationToken)
     {
-        var scriptPath = Path.Combine(installPath, "proton");
+        var installPath = Path.GetDirectoryName(scriptPath);
 
         try
         {
@@ -304,10 +324,11 @@ internal sealed partial class ProtonToolService(
         }
     }
 
-    private static async Task<string?> ReadVersionAsync(string installPath, CancellationToken cancellationToken)
-    {
-        var versionPath = Path.Combine(installPath, "version");
+    private Task<string?> ReadVersionAsync(string installPath, CancellationToken cancellationToken) =>
+        _versions.GetAsync(Path.Combine(installPath, "version"), ReadVersionFileAsync, cancellationToken);
 
+    private static async Task<string?> ReadVersionFileAsync(string versionPath, CancellationToken cancellationToken)
+    {
         try
         {
             if (!File.Exists(versionPath))

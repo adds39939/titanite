@@ -52,56 +52,82 @@ internal sealed class SteamClientSession(
 
     public async Task<SteamAppDetails?> GetAppDetailsAsync(
         uint appId,
+        CancellationToken cancellationToken = default) =>
+        (await GetAppDetailsAsync([appId], cancellationToken).ConfigureAwait(false)).GetValueOrDefault(appId);
+
+    public async Task<IReadOnlyDictionary<uint, SteamAppDetails>> GetAppDetailsAsync(
+        IReadOnlyCollection<uint> appIds,
         CancellationToken cancellationToken = default)
     {
+        var found = new Dictionary<uint, SteamAppDetails>();
+
+        if (appIds.Count == 0)
+        {
+            return found;
+        }
+
         var expression = $$"""
             (async () => {
               const apps = window.SteamClient?.Apps;
               if (!apps?.RegisterForAppDetails) return { tag: "no-api" };
-              let registration = null;
-              try {
-                const details = await new Promise(resolve => {
-                  let settled = false;
-                  const finish = value => { if (!settled) { settled = true; resolve(value); } };
-                  registration = apps.RegisterForAppDetails({{appId}}, finish);
-                  setTimeout(() => finish(null), {{DetailsTimeoutMilliseconds}});
-                });
-                if (!details) return { tag: "no-details" };
-                return {
-                  tag: "ok",
-                  launchOptions: details.strLaunchOptions ?? "",
-                  compatToolName: details.strCompatToolName ?? ""
+              const read = appId => new Promise(resolve => {
+                let registration = null;
+                let settled = false;
+                const release = () => {
+                  if (registration && typeof registration.unregister === "function") {
+                    registration.unregister();
+                  }
                 };
-              } finally {
-                if (registration && typeof registration.unregister === "function") {
-                  registration.unregister();
-                }
-              }
+                const finish = value => {
+                  if (settled) return;
+                  settled = true;
+                  release();
+                  resolve(value);
+                };
+                registration = apps.RegisterForAppDetails(appId, finish);
+                if (settled) release();
+                setTimeout(() => finish(null), {{DetailsTimeoutMilliseconds}});
+              });
+              const appIds = {{JsonSerializer.Serialize(appIds)}};
+              const details = await Promise.all(appIds.map(read));
+              return {
+                tag: "ok",
+                apps: appIds.flatMap((appId, index) => details[index]
+                  ? [{
+                      appId,
+                      launchOptions: details[index].strLaunchOptions ?? "",
+                      compatToolName: details[index].strCompatToolName ?? ""
+                    }]
+                  : [])
+              };
             })()
             """;
 
         if (await EvaluateAsync(expression, cancellationToken).ConfigureAwait(false) is not { } answer)
         {
-            return null;
+            return found;
         }
 
-        switch (Tag(answer))
+        if (Tag(answer) != "ok" || !answer.TryGetProperty("apps", out var apps))
         {
-            case "ok":
-                return new SteamAppDetails(
-                    Text(answer, "launchOptions"),
-                    Text(answer, "compatToolName"));
+            logger.LogWarning("Steam does not offer app details on this version.");
 
-            case "no-details":
-                logger.LogWarning("Steam did not report any details for {AppId}.", appId);
-
-                return null;
-
-            default:
-                logger.LogWarning("Steam does not offer app details on this version.");
-
-                return null;
+            return found;
         }
+
+        foreach (var app in apps.EnumerateArray())
+        {
+            found[app.GetProperty("appId").GetUInt32()] = new SteamAppDetails(
+                Text(app, "launchOptions"),
+                Text(app, "compatToolName"));
+        }
+
+        foreach (var missing in appIds.Where(appId => !found.ContainsKey(appId)))
+        {
+            logger.LogWarning("Steam did not report any details for {AppId}.", missing);
+        }
+
+        return found;
     }
 
     public Task<bool> SetLaunchOptionsAsync(
@@ -268,7 +294,17 @@ internal sealed class SteamClientSession(
     private static string Text(JsonElement answer, string property) =>
         answer.TryGetProperty(property, out var value) ? value.GetString() ?? string.Empty : string.Empty;
 
-    public async ValueTask DisposeAsync()
+    public bool IsOpen => socket.State == WebSocketState.Open;
+
+    public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+
+    public void Abort()
+    {
+        socket.Abort();
+        socket.Dispose();
+    }
+
+    public async Task CloseAsync()
     {
         try
         {

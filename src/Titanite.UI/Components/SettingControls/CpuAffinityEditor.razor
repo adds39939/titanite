@@ -35,9 +35,9 @@ else
         <div class="threads">
             @foreach (var thread in Topology.AllThreads)
             {
-                <label class="thread @(SelectedThreads.Contains(thread) ? "is-on" : string.Empty)" @key="thread">
+                <label class="thread @(Selected.Contains(thread) ? "is-on" : string.Empty)" @key="thread">
                     <input type="checkbox"
-                           checked="@SelectedThreads.Contains(thread)"
+                           checked="@Selected.Contains(thread)"
                            @onchange="@(args => ToggleThread(thread, args.Value is true))"/>
                     <span>@thread</span>
                 </label>

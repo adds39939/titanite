@@ -14,8 +14,10 @@ public partial class LaunchOptionsEditor : ComponentBase
     private const string RawSection = "Raw";
 
     private const string MangoHudCommand = "mangohud";
-
     private const string GameModeCommand = "gamemoderun";
+
+    private EditorView? _view;
+    private LaunchOptions? _formattedOptions;
 
     [Inject]
     private SettingCatalog Catalog { get; set; } = null!;
@@ -78,26 +80,33 @@ public partial class LaunchOptionsEditor : ComponentBase
 
     private string NewVariableValue { get; set; } = string.Empty;
 
-    private string SearchText { get; set; } = string.Empty;
-
     private SettingSearch _search = SettingSearch.None;
 
     private bool IsSearching => _search.IsActive;
 
-    private IReadOnlyList<string> Warnings => LaunchOptionsValidator.Validate(Options);
+    private EditorView View
+    {
+        get
+        {
+            if (_view is not { } view ||
+                !ReferenceEquals(view.Options, Options) ||
+                !ReferenceEquals(view.Build, Build) ||
+                view.Search != _search)
+            {
+                _view = view = BuildView();
+            }
 
-    private IReadOnlyList<EnvironmentVariable> CustomVariables =>
-        Options.Environment.Where(variable => Catalog.Find(variable.Name) is null).ToList();
+            return view;
+        }
+    }
 
-    private IReadOnlyList<EnvironmentVariable> ListedCustomVariables =>
-        CustomVariables.Where(variable => _search.MatchesVariable(variable.Name)).ToList();
+    private IReadOnlyList<string> Warnings => View.Warnings;
 
-    private IReadOnlyList<SettingGroup> AppliedGroups => Catalog.Categories
-        .Select(category => new SettingGroup(
-            category.Title,
-            DefinitionsIn(category).Where(IsSet).Where(_search.Matches).ToList()))
-        .Where(group => group.Settings.Count > 0)
-        .ToList();
+    private IReadOnlyList<EnvironmentVariable> CustomVariables => View.CustomVariables;
+
+    private IReadOnlyList<EnvironmentVariable> ListedCustomVariables => View.ListedCustomVariables;
+
+    private IReadOnlyList<SettingGroup> AppliedGroups => View.AppliedGroups;
 
     private int AppliedCount => Options.Environment.Count;
 
@@ -115,12 +124,17 @@ public partial class LaunchOptionsEditor : ComponentBase
 
     protected override void OnParametersSet()
     {
-        var formatted = Options.Format();
-
-        if (!string.Equals(formatted, _lastRendered, StringComparison.Ordinal))
+        if (!ReferenceEquals(Options, _formattedOptions))
         {
-            RawDraft = formatted;
-            _lastRendered = formatted;
+            _formattedOptions = Options;
+
+            var formatted = Options.Format();
+
+            if (!string.Equals(formatted, _lastRendered, StringComparison.Ordinal))
+            {
+                RawDraft = formatted;
+                _lastRendered = formatted;
+            }
         }
 
         if (SelectedCategory is { } selected && !HasAnythingToShow(selected))
@@ -129,8 +143,29 @@ public partial class LaunchOptionsEditor : ComponentBase
         }
     }
 
-    private IReadOnlyList<SettingCategory> VisibleCategories =>
-        Catalog.Categories.Where(HasAnythingToShow).ToList();
+    private IReadOnlyList<SettingCategory> VisibleCategories => View.VisibleCategories;
+
+    private EditorView BuildView()
+    {
+        var visible = Catalog.Categories.Where(HasAnythingToShow).ToList();
+        var custom = Options.Environment.Where(variable => Catalog.Find(variable.Name) is null).ToList();
+
+        return new EditorView(Options, Build, _search)
+        {
+            VisibleCategories = visible,
+            SetCounts = ById(visible, CountSetIn),
+            SearchHits = ById(_search.IsActive ? visible : [], FindSearchHit),
+            Warnings = LaunchOptionsValidator.Validate(Options),
+            CustomVariables = custom,
+            ListedCustomVariables = custom.Where(variable => _search.MatchesVariable(variable.Name)).ToList(),
+            AppliedGroups = Catalog.Categories
+                .Select(category => new SettingGroup(
+                    category.Title,
+                    DefinitionsIn(category).Where(IsSet).Where(_search.Matches).ToList()))
+                .Where(group => group.Settings.Count > 0)
+                .ToList()
+        };
+    }
 
     private bool HasAnythingToShow(SettingCategory category)
     {
@@ -161,7 +196,24 @@ public partial class LaunchOptionsEditor : ComponentBase
         (!definition.HideUnlessSet &&
             (!definition.RestrictToProtonBuild || definition.AppliesTo(Build)));
 
+    private static Dictionary<string, T> ById<T>(
+        IEnumerable<SettingCategory> categories,
+        Func<SettingCategory, T> value)
+    {
+        var byId = new Dictionary<string, T>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var category in categories)
+        {
+            byId.TryAdd(category.Id, value(category));
+        }
+
+        return byId;
+    }
+
     private int SetCountIn(SettingCategory category) =>
+        View.SetCounts.TryGetValue(category.Id, out var count) ? count : CountSetIn(category);
+
+    private int CountSetIn(SettingCategory category) =>
         DefinitionsIn(category)
             .Where(IsVisible)
             .Count(definition => Options.FindEnvironment(definition.Variable) is not null) +
@@ -174,6 +226,9 @@ public partial class LaunchOptionsEditor : ComponentBase
         group.Settings.Count(definition => Options.FindEnvironment(definition.Variable) is not null);
 
     private bool HasSearchHit(SettingCategory category) =>
+        View.SearchHits.TryGetValue(category.Id, out var hit) ? hit : FindSearchHit(category);
+
+    private bool FindSearchHit(SettingCategory category) =>
         ListedSettingsIn(category).Any() ||
         (category.Command is { } command && _search.MatchesAnythingIn(command));
 
@@ -189,8 +244,7 @@ public partial class LaunchOptionsEditor : ComponentBase
 
     private void OnSearchInput(ChangeEventArgs args)
     {
-        SearchText = args.Value?.ToString() ?? string.Empty;
-        _search = SettingSearch.For(SearchText);
+        _search = SettingSearch.For(args.Value?.ToString());
 
         SelectFirstSearchHit();
     }
@@ -284,5 +338,28 @@ public partial class LaunchOptionsEditor : ComponentBase
         _lastRendered = options.Format();
 
         return OptionsChanged.InvokeAsync(options);
+    }
+
+    private sealed class EditorView(LaunchOptions options, ProtonBuild? build, SettingSearch search)
+    {
+        public LaunchOptions Options { get; } = options;
+
+        public ProtonBuild? Build { get; } = build;
+
+        public SettingSearch Search { get; } = search;
+
+        public required IReadOnlyList<SettingCategory> VisibleCategories { get; init; }
+
+        public required IReadOnlyDictionary<string, int> SetCounts { get; init; }
+
+        public required IReadOnlyDictionary<string, bool> SearchHits { get; init; }
+
+        public required IReadOnlyList<string> Warnings { get; init; }
+
+        public required IReadOnlyList<EnvironmentVariable> CustomVariables { get; init; }
+
+        public required IReadOnlyList<EnvironmentVariable> ListedCustomVariables { get; init; }
+
+        public required IReadOnlyList<SettingGroup> AppliedGroups { get; init; }
     }
 }

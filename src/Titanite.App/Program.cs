@@ -14,7 +14,7 @@ namespace Titanite.App;
 internal class Program
 {
     [STAThread]
-    private static async Task Main(string[] args)
+    private static void Main(string[] args)
     {
         WebKitEnvironment.EnsureOsIsLinux();
         WebKitEnvironment.DisableNvidiaExplicitSync();
@@ -34,10 +34,8 @@ internal class Program
             .Build()
             .RegisterCustomSchemes();
 
-        await app.Services.StartTitaniteAsync();
-        
         var applicationInfo  = app.Services.GetRequiredService<IApplicationInfo>();
-        var settings = await app.Services.GetRequiredService<IAppSettingsService>().GetAsync();
+        var settings = app.Services.GetRequiredService<IAppSettingsService>().GetAsync().GetAwaiter().GetResult();
         
         app.MainWindow.SetDevToolsEnabled(applicationInfo.IsDevelopment);
         app.MainWindow.SetContextMenuEnabled(applicationInfo.IsDevelopment);

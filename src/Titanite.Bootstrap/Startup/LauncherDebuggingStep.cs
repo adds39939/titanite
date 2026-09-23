@@ -10,6 +10,8 @@ internal sealed class LauncherDebuggingStep(
 {
     public string Name => "The launcher debugging check";
 
+    public string Activity => "Connecting to Steam…";
+
     public async Task RunAsync(CancellationToken cancellationToken = default)
     {
         var outcome = await debugging.EnsureEnabledAsync(cancellationToken).ConfigureAwait(false);
