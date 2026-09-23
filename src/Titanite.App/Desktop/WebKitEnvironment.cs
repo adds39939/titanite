@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace Titanite.App;
+namespace Titanite.App.Desktop;
 
 internal static class WebKitEnvironment
 {

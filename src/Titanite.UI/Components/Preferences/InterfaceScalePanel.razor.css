@@ -1,0 +1,57 @@
+.scale {
+    margin-top: 10px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-1);
+}
+
+.scale-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 32px;
+}
+
+.scale-label {
+    min-width: 0;
+    max-width: 68ch;
+}
+
+.scale-label h2 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: var(--font-weight-strong);
+}
+
+.scale-label p {
+    margin: 3px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.scale-control {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 180px;
+}
+
+.control-note {
+    color: var(--text-muted);
+    font-size: 12px;
+    text-align: right;
+}
+
+.message {
+    margin: 12px 0 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.is-error {
+    color: var(--danger);
+}

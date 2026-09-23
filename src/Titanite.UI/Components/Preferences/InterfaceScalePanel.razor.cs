@@ -1,15 +1,19 @@
 using Microsoft.AspNetCore.Components;
+using Titanite.Abstractions.Hosting;
 using Titanite.Abstractions.Settings;
 using Titanite.Core.Settings;
 
 namespace Titanite.UI.Components.Preferences;
 
-public partial class VariableDescriptionsPanel : ComponentBase
+public partial class InterfaceScalePanel : ComponentBase
 {
     [Inject]
     private IAppSettingsService Settings { get; set; } = null!;
 
-    private AppSettings Current { get; set; } = new();
+    [Inject]
+    private IInterfaceScaler Scaler { get; set; } = null!;
+
+    private int Current { get; set; } = InterfaceScales.Default;
 
     private bool IsLoading { get; set; } = true;
 
@@ -19,14 +23,17 @@ public partial class VariableDescriptionsPanel : ComponentBase
 
     protected override async Task OnInitializedAsync()
     {
-        Current = await Settings.GetAsync();
+        Current = (await Settings.GetAsync()).InterfaceScale;
 
         IsLoading = false;
     }
 
-    private async Task OnToggledAsync(ChangeEventArgs args)
+    private static string Describe(int scale) =>
+        scale == InterfaceScales.Default ? $"{scale}% (default)" : $"{scale}%";
+
+    private async Task ChooseAsync(int scale)
     {
-        if (args.Value is not bool show)
+        if (scale == Current)
         {
             return;
         }
@@ -38,14 +45,15 @@ public partial class VariableDescriptionsPanel : ComponentBase
 
         try
         {
-            Current = (await Settings.GetAsync()) with { ShowVariableDescriptions = show };
+            Current = scale;
 
-            await Settings.SaveAsync(Current);
+            await Settings.SaveAsync((await Settings.GetAsync()) with { InterfaceScale = scale });
+            await Scaler.ApplyAsync(scale);
         }
         catch (Exception e)
         {
             Current = previous;
-            Message = $"The preference could not be saved: {e.Message}";
+            Message = $"The interface scale could not be changed: {e.Message}";
         }
         finally
         {

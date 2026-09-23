@@ -12,9 +12,14 @@ public sealed record AppSettings
 
     public bool ShowTools { get; init; }
 
+    public int InterfaceScale { get; init; } = InterfaceScales.Default;
+
     public AppSettings Sanitised() => this with
     {
         LibraryView = Enum.IsDefined(LibraryView) ? LibraryView : default,
-        LibrarySort = Enum.IsDefined(LibrarySort) ? LibrarySort : default
+        LibrarySort = Enum.IsDefined(LibrarySort) ? LibrarySort : default,
+        InterfaceScale = InterfaceScales.IsSupported(InterfaceScale) 
+            ? InterfaceScale 
+            : InterfaceScales.Default
     };
 }

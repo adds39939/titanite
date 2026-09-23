@@ -72,6 +72,11 @@ body {
     margin: 0;
 }
 
+app {
+    display: block;
+    height: 100%;
+}
+
 body {
     background: var(--surface-0);
     color: var(--text);

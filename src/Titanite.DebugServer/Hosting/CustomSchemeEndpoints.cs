@@ -1,6 +1,7 @@
 using Titanite.Abstractions.Hosting;
+using Titanite.DebugServer.Launchers;
 
-namespace Titanite.DebugServer;
+namespace Titanite.DebugServer.Hosting;
 
 internal static class CustomSchemeEndpoints
 {

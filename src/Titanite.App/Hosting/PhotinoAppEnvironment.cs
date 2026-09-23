@@ -1,7 +1,7 @@
 using PhotinoX.App;
 using Titanite.Abstractions.Hosting;
 
-namespace Titanite.App;
+namespace Titanite.App.Hosting;
 
 internal sealed class PhotinoAppEnvironment(PhotinoEnvironment environment) : IAppEnvironment
 {

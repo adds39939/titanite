@@ -1,6 +1,6 @@
 using Titanite.Abstractions.Hosting;
 
-namespace Titanite.DebugServer;
+namespace Titanite.DebugServer.Hosting;
 
 internal sealed class WebAppLifetime(ILogger<WebAppLifetime> logger) : IAppLifetime
 {

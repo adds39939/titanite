@@ -1,6 +1,6 @@
 using Titanite.Bootstrap;
 using Titanite.DebugServer.Components;
-using Titanite.DebugServer;
+using Titanite.DebugServer.Hosting;
 using Titanite.UI.Services;
 
 var builder = WebApplication.CreateBuilder(args);

@@ -95,4 +95,30 @@ public sealed class AppSettingsServiceTests : IDisposable
         Assert.False(settings.ShowVariableDescriptions);
         Assert.Equal(LibraryViewMode.List, settings.LibraryView);
     }
+
+    [Fact]
+    public async Task RemembersTheInterfaceScale()
+    {
+        await CreateService().SaveAsync(new AppSettings { InterfaceScale = 125 });
+
+        Assert.Equal(125, (await CreateService().GetAsync()).InterfaceScale);
+    }
+
+    [Fact]
+    public async Task OpensAtTheDefaultScaleForAFileFromBeforeScalingExisted()
+    {
+        Directory.CreateDirectory(_root);
+        await File.WriteAllTextAsync(SettingsFile, """{ "LibraryView": "Grid" }""");
+
+        Assert.Equal(100, (await CreateService().GetAsync()).InterfaceScale);
+    }
+
+    [Fact]
+    public async Task OpensAtTheDefaultScaleWhenTheStoredOneIsNotOffered()
+    {
+        Directory.CreateDirectory(_root);
+        await File.WriteAllTextAsync(SettingsFile, """{ "InterfaceScale": 9000 }""");
+
+        Assert.Equal(100, (await CreateService().GetAsync()).InterfaceScale);
+    }
 }

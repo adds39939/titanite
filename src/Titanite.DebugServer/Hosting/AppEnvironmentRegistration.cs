@@ -1,8 +1,9 @@
 using Titanite.Abstractions.Hosting;
 using Titanite.Abstractions.Launchers;
 using Titanite.Bootstrap;
+using Titanite.DebugServer.Launchers;
 
-namespace Titanite.DebugServer;
+namespace Titanite.DebugServer.Hosting;
 
 internal static class AppEnvironmentRegistration
 {
@@ -10,5 +11,6 @@ internal static class AppEnvironmentRegistration
         services
             .AddSingleton<IAppEnvironment, WebAppEnvironment>()
             .AddSingleton<IAppLifetime, WebAppLifetime>()
+            .AddScoped<IInterfaceScaler, WebInterfaceScaler>()
             .Decorate<IGameArtwork, HttpArtworkService>();
 }

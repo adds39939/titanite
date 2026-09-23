@@ -1,5 +1,7 @@
+@using Titanite.UI
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="zoom: @Zoom">
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -12,8 +14,9 @@
 </head>
 
 <body>
-    <Titanite.UI.App @rendermode="@(new InteractiveServerRenderMode(prerender: false))"/>
+    <App @rendermode="@(new InteractiveServerRenderMode(prerender: false))"/>
 
+    <script src="titanite.js"></script>
     <script src="_framework/blazor.web.js"></script>
 </body>
 </html>

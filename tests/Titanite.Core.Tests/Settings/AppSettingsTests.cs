@@ -88,4 +88,24 @@ public class AppSettingsTests
         Assert.Equal(LibrarySortOrder.RecentlyPlayed, settings.LibrarySort);
         Assert.True(settings.ShowVariableDescriptions);
     }
+
+    [Fact]
+    public void OpensAtTheDefaultScale() =>
+        Assert.Equal(100, new AppSettings().InterfaceScale);
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-50)]
+    [InlineData(137)]
+    [InlineData(1000)]
+    public void FallsBackToTheDefaultScaleWhenAskedForOneThatIsNotOffered(int stored) =>
+        Assert.Equal(100, (new AppSettings { InterfaceScale = stored }).Sanitised().InterfaceScale);
+
+    [Fact]
+    public void KeepsAScaleThatIsOffered() =>
+        Assert.Equal(150, (new AppSettings { InterfaceScale = 150 }).Sanitised().InterfaceScale);
+
+    [Fact]
+    public void OffersTheDefaultScale() =>
+        Assert.Contains(InterfaceScales.Default, InterfaceScales.Supported);
 }

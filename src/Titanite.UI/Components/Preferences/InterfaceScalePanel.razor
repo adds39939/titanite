@@ -1,0 +1,33 @@
+<section class="scale">
+    <div class="scale-row">
+        <div class="scale-label">
+            <h2>Interface scale</h2>
+            <p>Makes text and controls larger or smaller across the whole app.</p>
+        </div>
+
+        <div class="scale-control">
+            @if (IsLoading)
+            {
+                <span class="control-note">Reading…</span>
+            }
+            else
+            {
+                <SingleSelectDropdown Label="@Describe(Current)" Disabled="@IsBusy">
+                    @foreach (var scale in InterfaceScales.Supported)
+                    {
+                        <SingleSelectDropdownItem IsSelected="@(scale == Current)"
+                                                  OnSelect="() => ChooseAsync(scale)"
+                                                  @key="scale">
+                            @Describe(scale)
+                        </SingleSelectDropdownItem>
+                    }
+                </SingleSelectDropdown>
+            }
+        </div>
+    </div>
+
+    @if (Message is not null)
+    {
+        <p class="message is-error">@Message</p>
+    }
+</section>

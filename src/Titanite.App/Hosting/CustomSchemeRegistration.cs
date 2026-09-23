@@ -2,7 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Photino.Blazor;
 using Titanite.Abstractions.Hosting;
 
-namespace Titanite.App;
+namespace Titanite.App.Hosting;
 
 internal static class CustomSchemeRegistration
 {

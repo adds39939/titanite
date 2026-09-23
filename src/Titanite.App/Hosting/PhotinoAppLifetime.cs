@@ -1,23 +1,15 @@
 using Microsoft.Extensions.Logging;
-using Photino.NET;
+using PhotinoX.App;
 using Titanite.Abstractions.Hosting;
 using Titanite.Abstractions.Processes;
+using Titanite.App.Desktop;
 
-namespace Titanite.App;
+namespace Titanite.App.Hosting;
 
 internal sealed class PhotinoAppLifetime(IHostProcesses host, ILogger<PhotinoAppLifetime> logger) : IAppLifetime
 {
-    private PhotinoWindow? _window;
-
-    public void Attach(PhotinoWindow window) => _window = window;
-
     public bool Restart()
     {
-        if (_window is not { } window)
-        {
-            return false;
-        }
-
         if (!host.Start("flatpak", ["run", DesktopIdentity.ApplicationId]))
         {
             logger.LogWarning("Could not start Titanite again, so it is staying open.");
@@ -26,6 +18,9 @@ internal sealed class PhotinoAppLifetime(IHostProcesses host, ILogger<PhotinoApp
         }
 
         logger.LogInformation("Restarting Titanite.");
+
+        var window = PhotinoApp.Current.MainWindow;
+
         window.Invoke(window.Close);
 
         return true;

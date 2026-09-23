@@ -1,7 +1,7 @@
 using Titanite.Abstractions.Launchers;
 using Titanite.Core.Games;
 
-namespace Titanite.DebugServer;
+namespace Titanite.DebugServer.Launchers;
 
 public sealed class HttpArtworkService(IGameArtwork inner) : IGameArtwork
 {

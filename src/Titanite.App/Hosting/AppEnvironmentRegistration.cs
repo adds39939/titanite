@@ -1,13 +1,13 @@
 using Microsoft.Extensions.DependencyInjection;
 using Titanite.Abstractions.Hosting;
 
-namespace Titanite.App;
+namespace Titanite.App.Hosting;
 
 internal static class AppEnvironmentRegistration
 {
     public static IServiceCollection AddAppEnvironment(this IServiceCollection services) =>
         services
             .AddSingleton<IAppEnvironment, PhotinoAppEnvironment>()
-            .AddSingleton<PhotinoAppLifetime>()
-            .AddSingleton<IAppLifetime>(provider => provider.GetRequiredService<PhotinoAppLifetime>());
+            .AddSingleton<IAppLifetime, PhotinoAppLifetime>()
+            .AddSingleton<IInterfaceScaler, PhotinoInterfaceScaler>();
 }
