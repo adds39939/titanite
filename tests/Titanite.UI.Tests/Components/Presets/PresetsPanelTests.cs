@@ -9,6 +9,7 @@ using Titanite.Core.Presets;
 using Titanite.Core.Proton;
 using Titanite.Core.Settings;
 using Titanite.UI.Components.Presets;
+using Titanite.UI.Services.Editing;
 using Titanite.UI.Services.Presentation;
 
 namespace Titanite.UI.Tests.Components.Presets;
@@ -55,6 +56,7 @@ public sealed class PresetsPanelTests : BunitContext
         Services.AddSingleton(A.Fake<IGameLauncher>());
         Services.AddSingleton(Available());
         Services.AddSingleton(new SettingCatalog([], []));
+        Services.AddSingleton(A.Fake<IUnsavedChanges>());
         Services.AddTransient<IPresetsPresenter>(_ =>
             new PresetsPresenter(_presets, _compatibilityTools));
     }

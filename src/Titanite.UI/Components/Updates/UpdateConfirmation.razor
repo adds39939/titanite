@@ -1,0 +1,19 @@
+<div class="backdrop" tabindex="-1" @ref="_backdrop" @onclick="Cancel" @onkeydown="OnKeyDown">
+    <div class="panel"
+         role="dialog"
+         aria-modal="true"
+         aria-label="@Title"
+         @onclick:stopPropagation="true">
+        <h2 class="title">@Title</h2>
+        <p class="note">
+            Titanite restarts once v@(Version) is installed, so changes you haven't saved will be lost.
+            Cancel to save them first, then update again.
+        </p>
+
+        <div class="actions">
+            <Button Autofocus="true" OnClick="Cancel">Cancel</Button>
+
+            <Button Variant="ButtonVariant.Danger" OnClick="Confirm">Update anyway</Button>
+        </div>
+    </div>
+</div>

@@ -23,6 +23,12 @@ public sealed class FlatpakHostProcesses(ILogger<FlatpakHostProcesses> logger) :
         DetachedProcess.TryStart(logger, OnHost(DetachedProcess.BuildStartInfo(detached: true, fileName, arguments))) ||
         DetachedProcess.TryStart(logger, OnHost(DetachedProcess.BuildStartInfo(detached: false, fileName, arguments)));
 
+    public Task<bool> RunAsync(
+        string fileName,
+        IReadOnlyList<string> arguments,
+        CancellationToken cancellationToken = default) =>
+        AttachedProcess.RunAsync(logger, OnHost(new ProcessStartInfo(fileName, arguments)), cancellationToken);
+
     private bool Query(IReadOnlyList<string> arguments)
     {
         var startInfo = OnHost(new ProcessStartInfo(ProcessQueryCommand, arguments));

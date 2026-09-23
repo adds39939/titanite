@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using Titanite.UI.Services.Editing;
 using Titanite.UI.Services.Presentation;
 
 namespace Titanite.UI.Services;
@@ -10,6 +11,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IGameConfigurationPresenter, GameConfigurationPresenter>();
         services.AddTransient<IPresetsPresenter, PresetsPresenter>();
         services.AddTransient<IGameLibraryPresenter, GameLibraryPresenter>();
+        services.AddScoped<IUnsavedChanges, UnsavedChanges>();
 
         return services;
     }

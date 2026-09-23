@@ -4,6 +4,7 @@ using Titanite.Abstractions.Launchers;
 using Titanite.Core.Games;
 using Titanite.Core.Launch;
 using Titanite.UI.Components.Launch;
+using Titanite.UI.Services.Editing;
 using Titanite.UI.Services.Presentation;
 
 namespace Titanite.UI.Components.GameConfig;
@@ -21,6 +22,9 @@ public partial class GameConfigPanel : LauncherAvailabilityView
     [Inject]
     private IGameConfigurationWatcher Watcher { get; set; } = null!;
 
+    [Inject]
+    private IUnsavedChanges UnsavedChanges { get; set; } = null!;
+
     [Parameter]
     public GameId GameId { get; set; }
 
@@ -37,6 +41,15 @@ public partial class GameConfigPanel : LauncherAvailabilityView
     private bool LaunchPending { get; set; }
 
     private GameId _followed;
+
+    private IDisposable? _unsavedChanges;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        _unsavedChanges = UnsavedChanges.Track(() => Presenter.HasChanges);
+    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -97,6 +110,7 @@ public partial class GameConfigPanel : LauncherAvailabilityView
     public override void Dispose()
     {
         StopFollowing();
+        _unsavedChanges?.Dispose();
 
         base.Dispose();
     }

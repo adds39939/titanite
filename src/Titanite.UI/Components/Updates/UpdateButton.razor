@@ -1,0 +1,24 @@
+@if (Update is not null)
+{
+    <span class="@StateClass">
+        <Button Variant="ButtonVariant.Bare"
+                Disabled="@(State is UpdateState.Installing or UpdateState.Installed)"
+                OnClick="RequestUpdateAsync"
+                aria-label="@Label"
+                title="@Label">
+            @if (State == UpdateState.Installing)
+            {
+                <SpinnerIcon/>
+            }
+            else
+            {
+                <UpdateIcon/>
+            }
+        </Button>
+    </span>
+
+    @if (IsConfirming)
+    {
+        <UpdateConfirmation Version="@Update.Version" OnConfirm="ConfirmAsync" OnCancel="CancelConfirmation"/>
+    }
+}

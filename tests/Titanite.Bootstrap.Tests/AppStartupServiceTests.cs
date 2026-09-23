@@ -63,6 +63,7 @@ public sealed class AppStartupServiceTests
         var services = new ServiceCollection();
 
         services.AddSingleton(typeof(ILogger<>), typeof(NullLogger<>));
+        services.AddSingleton(A.Fake<IAppEnvironment>());
 
         using var provider = services.AddTitanite().BuildServiceProvider();
 

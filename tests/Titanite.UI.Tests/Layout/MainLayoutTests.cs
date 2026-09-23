@@ -2,7 +2,9 @@ using Bunit;
 using Microsoft.Extensions.DependencyInjection;
 using Titanite.Abstractions.Desktop;
 using Titanite.Abstractions.Hosting;
+using Titanite.Abstractions.Updates;
 using Titanite.UI.Layout;
+using Titanite.UI.Services.Editing;
 
 namespace Titanite.UI.Tests.Layout;
 
@@ -21,6 +23,9 @@ public sealed class MainLayoutTests : BunitContext
 
         Services.AddSingleton(info);
         Services.AddSingleton(_browser);
+        Services.AddSingleton(A.Fake<IAppUpdater>());
+        Services.AddSingleton(A.Fake<IAppLifetime>());
+        Services.AddSingleton(A.Fake<IUnsavedChanges>());
     }
 
     [Fact]

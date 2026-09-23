@@ -58,4 +58,10 @@ public sealed class NativeHostProcesses(ILogger<NativeHostProcesses> logger) : I
 
     public bool Start(string fileName, IReadOnlyList<string> arguments) =>
         DetachedProcess.TryStart(logger, fileName, arguments);
+
+    public Task<bool> RunAsync(
+        string fileName,
+        IReadOnlyList<string> arguments,
+        CancellationToken cancellationToken = default) =>
+        AttachedProcess.RunAsync(logger, new ProcessStartInfo(fileName, arguments), cancellationToken);
 }

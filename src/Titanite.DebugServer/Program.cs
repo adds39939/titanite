@@ -1,4 +1,3 @@
-using Titanite.Abstractions.Launchers;
 using Titanite.Bootstrap;
 using Titanite.DebugServer.Components;
 using Titanite.DebugServer;
@@ -7,14 +6,11 @@ using Titanite.UI.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
+    .AddTitanite()
+    .AddTitaniteUI()
+    .AddAppEnvironment()
     .AddRazorComponents()
     .AddInteractiveServerComponents();
-
-builder.Services
-    .AddTitanite()
-    .AddTitaniteUI();
-
-builder.Services.Decorate<IGameArtwork, HttpArtworkService>();
 
 var app = builder.Build();
 

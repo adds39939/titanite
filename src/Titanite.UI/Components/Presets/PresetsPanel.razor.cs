@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Titanite.Core.Launch;
 using Titanite.UI.Components.Launch;
+using Titanite.UI.Services.Editing;
 using Titanite.UI.Services.Presentation;
 
 namespace Titanite.UI.Components.Presets;
@@ -17,6 +18,18 @@ public partial class PresetsPanel : LauncherAvailabilityView
     private bool ResetPending { get; set; }
 
     private bool DeletePending { get; set; }
+
+    [Inject]
+    private IUnsavedChanges UnsavedChanges { get; set; } = null!;
+
+    private IDisposable? _unsavedChanges;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        _unsavedChanges = UnsavedChanges.Track(() => Presenter.HasChanges);
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -112,5 +125,12 @@ public partial class PresetsPanel : LauncherAvailabilityView
     {
         ResetPending = false;
         DeletePending = false;
+    }
+
+    public override void Dispose()
+    {
+        _unsavedChanges?.Dispose();
+
+        base.Dispose();
     }
 }

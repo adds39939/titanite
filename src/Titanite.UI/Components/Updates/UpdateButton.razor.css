@@ -1,0 +1,49 @@
+.update {
+    --halo: color-mix(in srgb, var(--added), white 40%);
+    display: inline-flex;
+}
+
+.update ::deep .button-bare,
+.update ::deep .button-bare:hover:not(:disabled) {
+    color: var(--added);
+}
+
+.update ::deep svg {
+    border-radius: 50%;
+    transition: box-shadow 250ms ease;
+}
+
+.update ::deep .button-bare:hover:not(:disabled) svg {
+    box-shadow:
+        0 0 0 1px var(--halo),
+        0 0 5px 2px var(--halo),
+        inset 0 0 0 0.75px var(--halo);
+}
+
+.update-installing ::deep .button-bare:disabled,
+.update-installed ::deep .button-bare:disabled {
+    border-color: transparent;
+    background: transparent;
+    color: var(--added);
+    opacity: 1;
+    cursor: default;
+}
+
+.update-installing ::deep svg {
+    animation: update-spin 0.8s linear infinite;
+}
+
+.update-failed {
+    --halo: color-mix(in srgb, var(--danger), white 40%);
+}
+
+.update-failed ::deep .button-bare,
+.update-failed ::deep .button-bare:hover:not(:disabled) {
+    color: var(--danger);
+}
+
+@keyframes update-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

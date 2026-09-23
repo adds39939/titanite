@@ -8,10 +8,12 @@ using Titanite.Abstractions.Launchers;
 using Titanite.Abstractions.Presets;
 using Titanite.Abstractions.Processes;
 using Titanite.Abstractions.Settings;
+using Titanite.Abstractions.Updates;
 using Titanite.Catalog;
 using Titanite.Platform.Cpu;
 using Titanite.Platform.Desktop;
 using Titanite.Platform.Processes;
+using Titanite.Platform.Updates;
 using Titanite.Steam.Artwork;
 using Titanite.Steam.Client;
 using Titanite.Steam.Launch;
@@ -73,11 +75,32 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IPresetReconciler, PresetReconciler>();
 
         services.AddSingleton<IApplicationInfo, ApplicationInfo>();
+        services.Configure<UpdaterOptions>(options => options.DownloadDirectory = UpdateDownloadDirectory());
+        services.AddHttpClient<GitHubReleaseUpdater>((provider, client) =>
+        {
+            client.DefaultRequestHeaders.UserAgent.TryParseAdd(
+                $"Titanite/{provider.GetRequiredService<IApplicationInfo>().Version}");
+            client.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
+            client.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
+        });
+        services.AddTransient<IAppUpdater>(provider => provider.GetRequiredService<GitHubReleaseUpdater>());
         services.AddSingleton<IAppStartupService, AppStartupService>();
         services.AddSingleton<IStartupStep, LauncherDebuggingStep>();
         services.AddSingleton<IStartupStep, PresetReconciliationStep>();
 
         return services;
+    }
+
+    internal static string UpdateDownloadDirectory()
+    {
+        var cache = Environment.GetEnvironmentVariable("XDG_CACHE_HOME");
+
+        if (string.IsNullOrWhiteSpace(cache))
+        {
+            cache = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".cache");
+        }
+
+        return Path.Combine(cache, "titanite", "updates");
     }
 
     internal static IServiceCollection AddHostProcesses(this IServiceCollection services, bool sandboxed) =>

@@ -6,7 +6,7 @@ namespace Titanite.UI.Tests.Components.Icons;
 public sealed class IconTests : BunitContext
 {
     public static TheoryData<Type> Icons =>
-        [typeof(ChevronIcon), typeof(FilterIcon), typeof(GitHubIcon), typeof(GridIcon), typeof(ListIcon)];
+        [typeof(ChevronIcon), typeof(FilterIcon), typeof(GitHubIcon), typeof(GridIcon), typeof(ListIcon), typeof(SpinnerIcon), typeof(UpdateIcon)];
 
     [Theory]
     [MemberData(nameof(Icons))]

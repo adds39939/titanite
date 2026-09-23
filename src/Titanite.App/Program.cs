@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Photino.Blazor;
+using Titanite.Abstractions.Hosting;
 using Titanite.Bootstrap;
 using Titanite.UI.Services;
 using System.Drawing;
@@ -21,7 +22,8 @@ internal class Program
         appBuilder.Services
             .AddLogging(logging => logging.AddConsole())
             .AddTitanite()
-            .AddTitaniteUI();
+            .AddTitaniteUI()
+            .AddAppEnvironment();
 
         appBuilder.RootComponents.Add<UI.App>("app");
 
@@ -30,13 +32,16 @@ internal class Program
             .RegisterCustomSchemes();
 
         await app.Services.StartTitaniteAsync();
-
+        
+        var applicationInfo  = app.Services.GetRequiredService<IApplicationInfo>();
+        
+        app.MainWindow.SetDevToolsEnabled(applicationInfo.IsDevelopment);
+        app.MainWindow.SetContextMenuEnabled(applicationInfo.IsDevelopment);
         app.MainWindow.SetTitle("Titanite");
         app.MainWindow.SetSize(new Size(1280, 900));
         app.MainWindow.SetIconFile(Path.Combine(AppContext.BaseDirectory, "wwwroot", "titanite-icon.png"));
-        
-        app.MainWindow.SetDevToolsEnabled(app.Environment.IsDevelopment);
-        app.MainWindow.SetContextMenuEnabled(app.Environment.IsDevelopment);
+
+        app.Services.GetRequiredService<PhotinoAppLifetime>().Attach(app.MainWindow);
 
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>
         {
