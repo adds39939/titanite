@@ -8,14 +8,9 @@ internal interface ISteamDebuggingService
 public enum SteamDebuggingOutcome
 {
     AlreadyEnabled,
-
     EnabledAndRestarted,
-
     EnabledPendingStart,
-
     EnabledPendingRestart,
-
     NoSteamInstall,
-
     Failed
 }

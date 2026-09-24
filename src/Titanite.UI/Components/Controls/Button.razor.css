@@ -8,6 +8,8 @@
     font: inherit;
     cursor: pointer;
     transition: border-color 120ms ease, background 120ms ease;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .button:hover:not(:disabled) {

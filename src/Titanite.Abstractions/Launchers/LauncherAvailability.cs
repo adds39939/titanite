@@ -3,9 +3,7 @@ namespace Titanite.Abstractions.Launchers;
 public enum AvailabilityStatus
 {
     Unknown,
-
     Available,
-
     Blocked
 }
 

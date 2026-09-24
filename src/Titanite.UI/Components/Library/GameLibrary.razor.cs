@@ -63,11 +63,13 @@ public partial class GameLibrary : ComponentBase, IAsyncDisposable
         }
     }
 
-    private bool ShowsGrid =>
-        !Presenter.IsLoading &&
-        Presenter.LoadError is null &&
-        Presenter.VisibleGames.Count > 0 &&
-        Presenter.ViewMode == LibraryViewMode.Grid;
+    private bool ShowsGrid => Presenter is 
+    { 
+        IsLoading: false,
+        LoadError: null,
+        VisibleGames.Count: > 0,
+        ViewMode: LibraryViewMode.Grid 
+    };
 
     protected override Task OnInitializedAsync()
     {

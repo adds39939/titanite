@@ -6,6 +6,10 @@
 <p align="center">
   <a href="https://github.com/adds39939/titanite/releases"><img src="https://img.shields.io/badge/Download-Flatpak-4A90D9?style=flat&logo=flatpak&logoColor=white" alt="Download Flatpak"></a>
   <a href="https://github.com/adds39939/titanite/releases/latest"><img src="https://img.shields.io/github/v/release/adds39939/titanite?include_prereleases&style=flat&label=Release" alt="Latest release"></a>
+  <a href="https://github.com/adds39939/titanite/releases"><img src="https://img.shields.io/github/downloads/adds39939/titanite/total?style=flat&label=Downloads" alt="Total downloads"></a><br>
+  <a href="https://github.com/adds39939/titanite/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/adds39939/titanite/build.yml?style=flat&label=Build" alt="Build status"></a>
+  <img src="https://img.shields.io/badge/.NET-10-512BD4?style=flat&logo=dotnet&logoColor=white" alt=".NET 10">
+  <img src="https://img.shields.io/badge/SteamOS-Ready-1A9FFF?style=flat&logo=steamdeck&logoColor=white" alt="SteamOS Ready">
   <a href="LICENSE"><img src="https://img.shields.io/github/license/adds39939/titanite?style=flat&label=Licence" alt="GPL-3.0 licence"></a>
 </p>
 

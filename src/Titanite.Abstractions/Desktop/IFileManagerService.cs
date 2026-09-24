@@ -3,9 +3,7 @@ namespace Titanite.Abstractions.Desktop;
 public enum DirectoryOpenStatus
 {
     Opened,
-
     NotFound,
-
     Failed
 }
 

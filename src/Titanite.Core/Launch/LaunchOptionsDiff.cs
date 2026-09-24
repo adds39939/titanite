@@ -3,9 +3,7 @@ namespace Titanite.Core.Launch;
 public enum LaunchDiffKind
 {
     Unchanged,
-
     Added,
-
     Removed
 }
 

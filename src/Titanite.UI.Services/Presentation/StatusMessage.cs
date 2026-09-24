@@ -19,8 +19,6 @@ public sealed record StatusMessage(string Text, StatusTone Tone)
 public enum StatusTone
 {
     Success,
-
     Warning,
-
     Error
 }

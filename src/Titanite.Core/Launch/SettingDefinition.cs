@@ -6,11 +6,8 @@ namespace Titanite.Core.Launch;
 public enum SettingKind
 {
     Toggle,
-
     Choice,
-
     Text,
-
     Number
 }
 

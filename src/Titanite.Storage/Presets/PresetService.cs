@@ -30,7 +30,9 @@ public sealed class PresetService(
     public Task<Preset> CreateAsync(string name, CancellationToken cancellationToken = default) =>
         UpdateAsync(stored =>
         {
-            var clean = PresetName.Clean(name) is { Length: > 0 } given ? given : "New preset";
+            var clean = PresetName.Clean(name) is { Length: > 0 } given
+                ? given 
+                : "New preset";
 
             var created = new Preset
             {

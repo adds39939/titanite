@@ -3,9 +3,7 @@ namespace Titanite.Abstractions.Launchers;
 public enum LaunchOptionsSaveStatus
 {
     Saved,
-
     LauncherUnavailable,
-
     WriteFailed
 }
 

@@ -12,6 +12,8 @@
     border-bottom: 1px solid var(--border);
     background: var(--surface-1);
     flex: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 .wordmark {
@@ -56,8 +58,6 @@
     font-size: 13px;
     text-decoration: none;
     cursor: pointer;
-    -webkit-user-select: none;
-    user-select: none;
     transition: color 120ms ease, border-color 120ms ease;
 }
 
