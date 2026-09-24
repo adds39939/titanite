@@ -26,30 +26,77 @@ public sealed class InterfaceScalePanelTests : BunitContext
     }
 
     [Fact]
-    public void ShowsTheStoredScale() =>
-        Assert.Equal("125%", Render<InterfaceScalePanel>().Find(".dropdown > button .label").TextContent);
-
-    [Fact]
-    public void OffersEverySupportedScale()
+    public void ShowsTheStoredScale()
     {
         var panel = Render<InterfaceScalePanel>();
 
-        panel.Find(".dropdown > button").Click();
-
-        Assert.Equal(InterfaceScales.Supported.Count, panel.FindAll(".item").Count);
+        Assert.Equal("125", panel.Find(".slider-input").GetAttribute("value"));
+        Assert.Equal("125%", panel.Find(".mark.is-selected").TextContent.Trim());
     }
 
     [Fact]
-    public void SavesAndAppliesTheChosenScale()
+    public void SlidesInQuarterStepsFromThreeQuartersToDouble()
+    {
+        var slider = Render<InterfaceScalePanel>().Find(".slider-input");
+
+        Assert.Equal("75", slider.GetAttribute("min"));
+        Assert.Equal("200", slider.GetAttribute("max"));
+        Assert.Equal("25", slider.GetAttribute("step"));
+    }
+
+    [Fact]
+    public void MarksEverySupportedScale()
+    {
+        var marks = Render<InterfaceScalePanel>().FindAll(".mark").Select(mark => mark.TextContent.Trim());
+
+        Assert.Equal(["75%", "100%", "125%", "150%", "175%", "200%"], marks);
+    }
+
+    [Fact]
+    public void FollowsTheSliderWithoutApplyingUntilItIsReleased()
     {
         var panel = Render<InterfaceScalePanel>();
 
-        panel.Find(".dropdown > button").Click();
-        panel.FindAll(".item").Single(item => item.TextContent.Trim() == "150%").Click();
+        panel.Find(".slider-input").Input("175");
+
+        Assert.Equal("175%", panel.Find(".mark.is-selected").TextContent.Trim());
+        Assert.Equal(125, _stored.InterfaceScale);
+        A.CallTo(() => _scaler.ApplyAsync(A<int>._)).MustNotHaveHappened();
+    }
+
+    [Fact]
+    public void SavesAndAppliesTheScaleTheSliderIsReleasedOn()
+    {
+        var panel = Render<InterfaceScalePanel>();
+
+        panel.Find(".slider-input").Input("150");
+        panel.Find(".slider-input").Change("150");
 
         Assert.Equal(150, _stored.InterfaceScale);
-        Assert.Equal("150%", panel.Find(".dropdown > button .label").TextContent);
+        Assert.Equal("150%", panel.Find(".mark.is-selected").TextContent.Trim());
         A.CallTo(() => _scaler.ApplyAsync(150)).MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
+    public void SavesAndAppliesTheScaleOfAClickedMark()
+    {
+        var panel = Render<InterfaceScalePanel>();
+
+        panel.FindAll(".mark").Single(mark => mark.TextContent.Trim() == "75%").Click();
+
+        Assert.Equal(75, _stored.InterfaceScale);
+        A.CallTo(() => _scaler.ApplyAsync(75)).MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
+    public void IgnoresAScaleThatIsNotOffered()
+    {
+        var panel = Render<InterfaceScalePanel>();
+
+        panel.Find(".slider-input").Change("110");
+
+        Assert.Equal(125, _stored.InterfaceScale);
+        A.CallTo(() => _scaler.ApplyAsync(A<int>._)).MustNotHaveHappened();
     }
 
     [Fact]
@@ -59,8 +106,7 @@ public sealed class InterfaceScalePanelTests : BunitContext
 
         _stored = _stored with { LibraryView = LibraryViewMode.Grid };
 
-        panel.Find(".dropdown > button").Click();
-        panel.FindAll(".item").Single(item => item.TextContent.Trim() == "90%").Click();
+        panel.Find(".slider-input").Change("100");
 
         Assert.True(_stored.ShowVariableDescriptions);
         Assert.Equal(LibraryViewMode.Grid, _stored.LibraryView);
@@ -74,10 +120,9 @@ public sealed class InterfaceScalePanelTests : BunitContext
 
         var panel = Render<InterfaceScalePanel>();
 
-        panel.Find(".dropdown > button").Click();
-        panel.FindAll(".item").Single(item => item.TextContent.Trim() == "150%").Click();
+        panel.Find(".slider-input").Change("150");
 
-        Assert.Equal("125%", panel.Find(".dropdown > button .label").TextContent);
+        Assert.Equal("125", panel.Find(".slider-input").GetAttribute("value"));
         Assert.Contains("disk full", panel.Find(".message").TextContent, StringComparison.Ordinal);
         A.CallTo(() => _scaler.ApplyAsync(A<int>._)).MustNotHaveHappened();
     }

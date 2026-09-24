@@ -9,7 +9,11 @@ internal sealed class PhotinoInterfaceScaler : IInterfaceScaler
     {
         var window = PhotinoApp.Current.MainWindow;
 
-        window.Invoke(() => window.SetZoom(percent));
+        window.Invoke(() =>
+        {
+            window.SetZoom(percent);
+            WindowMinimumSize.Apply(window, percent);
+        });
 
         return Task.CompletedTask;
     }

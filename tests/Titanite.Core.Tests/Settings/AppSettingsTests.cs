@@ -96,6 +96,8 @@ public class AppSettingsTests
     [Theory]
     [InlineData(0)]
     [InlineData(-50)]
+    [InlineData(90)]
+    [InlineData(110)]
     [InlineData(137)]
     [InlineData(1000)]
     public void FallsBackToTheDefaultScaleWhenAskedForOneThatIsNotOffered(int stored) =>

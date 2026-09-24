@@ -43,6 +43,7 @@ internal class Program
         app.MainWindow.SetSize(new Size(1280, 900));
         app.MainWindow.SetZoom(settings.InterfaceScale);
         app.MainWindow.SetIconFile(Path.Combine(AppContext.BaseDirectory, "wwwroot", "titanite-icon.png"));
+        app.MainWindow.RegisterCreatedHandler((_, _) => WindowMinimumSize.Apply(app.MainWindow, settings.InterfaceScale));
 
         AppDomain.CurrentDomain.UnhandledException += (s, e) =>
         {

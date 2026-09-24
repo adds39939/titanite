@@ -1,5 +1,5 @@
 .not-found {
-    max-width: 1180px;
+    width: min(1180px, 100% - 48px);
     margin: 28px auto;
 }
 

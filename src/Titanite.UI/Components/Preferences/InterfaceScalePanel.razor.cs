@@ -15,6 +15,10 @@ public partial class InterfaceScalePanel : ComponentBase
 
     private int Current { get; set; } = InterfaceScales.Default;
 
+    private int? Sliding { get; set; }
+
+    private int Shown => Sliding ?? Current;
+
     private bool IsLoading { get; set; } = true;
 
     private bool IsBusy { get; set; }
@@ -30,6 +34,26 @@ public partial class InterfaceScalePanel : ComponentBase
 
     private static string Describe(int scale) =>
         scale == InterfaceScales.Default ? $"{scale}% (default)" : $"{scale}%";
+
+    private static int? Parse(ChangeEventArgs args) =>
+        int.TryParse(args.Value?.ToString(), out var scale) && InterfaceScales.IsSupported(scale) ? scale : null;
+
+    private string MarkClass(int scale) =>
+        scale == Shown ? "mark is-selected" : "mark";
+
+    private void OnSliding(ChangeEventArgs args) => Sliding = Parse(args) ?? Sliding;
+
+    private async Task OnSlidAsync(ChangeEventArgs args)
+    {
+        var scale = Parse(args);
+
+        Sliding = null;
+
+        if (scale is not null)
+        {
+            await ChooseAsync(scale.Value);
+        }
+    }
 
     private async Task ChooseAsync(int scale)
     {

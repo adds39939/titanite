@@ -12,16 +12,34 @@
             }
             else
             {
-                <SingleSelectDropdown Label="@Describe(Current)" Disabled="@IsBusy">
-                    @foreach (var scale in InterfaceScales.Supported)
-                    {
-                        <SingleSelectDropdownItem IsSelected="@(scale == Current)"
-                                                  OnSelect="() => ChooseAsync(scale)"
-                                                  @key="scale">
-                            @Describe(scale)
-                        </SingleSelectDropdownItem>
-                    }
-                </SingleSelectDropdown>
+                <div class="slider">
+                    <input class="slider-input"
+                           type="range"
+                           min="@InterfaceScales.Minimum"
+                           max="@InterfaceScales.Maximum"
+                           step="@InterfaceScales.Step"
+                           value="@Shown"
+                           disabled="@IsBusy"
+                           aria-label="Interface scale"
+                           aria-valuetext="@Describe(Shown)"
+                           @oninput="OnSliding"
+                           @onchange="OnSlidAsync"/>
+
+                    <div class="marks">
+                        @foreach (var scale in InterfaceScales.Supported)
+                        {
+                            <button type="button"
+                                    class="@MarkClass(scale)"
+                                    disabled="@IsBusy"
+                                    tabindex="-1"
+                                    title="@Describe(scale)"
+                                    @onclick="() => ChooseAsync(scale)"
+                                    @key="scale">
+                                @scale%
+                            </button>
+                        }
+                    </div>
+                </div>
             }
         </div>
     </div>
