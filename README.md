@@ -20,8 +20,6 @@
   <img src="docs/screenshot-settings.png" alt="Titanite showing a game's launch settings" width="49%">
 </p>
 
-Configure launch arguments for Proton, DXVK, Gamescope, MangoHud, HDR, upscalers and more for any game, all from a real settings page. Save presets and reuse them across games.
-
 ## Features
 
 - Easy launch argument configuration for a wide range of game settings, such as Proton, DXVK, VKD3D, Gamescope, MangoHud, HDR, upscalers and GPU-specific options
