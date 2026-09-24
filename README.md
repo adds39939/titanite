@@ -30,9 +30,9 @@
 
 ## How it works
 
-Titanite writes launch options and Proton builds through Steam itself, so changes show up in Steam right away.
+Titanite is a Linux take on the per-game settings in the Nvidia App or AMD Adrenalin.
 
-Everything Titanite sets ends up as plain launch options in Steam. There are no extra config files, wrapper scripts or background services, and nothing needs to be running when you play. You can see and edit the result in Steam's own properties window, and if you uninstall Titanite your games keep working exactly as you left them.
+It sets launch options and Proton builds through Steam itself, so changes show up right away. No config files, wrappers or background services, and nothing has to run while you play. Everything stays visible and editable in Steam's properties window, and if you uninstall Titanite, your games carry on exactly as you left them.
 
 ## Install
 
