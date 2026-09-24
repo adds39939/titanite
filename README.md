@@ -25,6 +25,7 @@
 - Easy launch argument configuration for a wide range of game settings, such as Proton, DXVK, VKD3D, Gamescope, MangoHud, HDR, upscalers and GPU-specific options
 - Choose the Proton build per game, including custom builds like GE-Proton
 - Presets of environment variables and wrapper commands you can apply to any game
+- Works with any distro - SteamOS ready
 - Built-in updates
 
 ## How it works
