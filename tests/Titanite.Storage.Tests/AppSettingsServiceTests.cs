@@ -121,4 +121,56 @@ public sealed class AppSettingsServiceTests : IDisposable
 
         Assert.Equal(100, (await CreateService().GetAsync()).InterfaceScale);
     }
+
+    [Fact]
+    public void OpensOnTheDefaultsWithoutWaitingWhenNothingHasBeenStored() =>
+        Assert.Equal(new AppSettings(), CreateService().Get());
+
+    [Fact]
+    public async Task ReadsWhatWasStoredWithoutWaiting()
+    {
+        await CreateService().SaveAsync(new AppSettings { InterfaceScale = 150, ShowTools = true });
+
+        var settings = CreateService().Get();
+
+        Assert.Equal(150, settings.InterfaceScale);
+        Assert.True(settings.ShowTools);
+    }
+
+    [Fact]
+    public async Task FallsBackToTheDefaultsWithoutWaitingWhenTheFileCannotBeRead()
+    {
+        Directory.CreateDirectory(_root);
+        await File.WriteAllTextAsync(SettingsFile, "not json at all");
+
+        Assert.Equal(new AppSettings(), CreateService().Get());
+    }
+
+    [Fact]
+    public async Task SanitisesWhatItReadsWithoutWaiting()
+    {
+        Directory.CreateDirectory(_root);
+        await File.WriteAllTextAsync(SettingsFile, """{ "InterfaceScale": 9000 }""");
+
+        Assert.Equal(100, CreateService().Get().InterfaceScale);
+    }
+
+    [Fact]
+    public async Task SharesWhatItReadWithTheAsynchronousRead()
+    {
+        var service = CreateService();
+        var read = service.Get();
+
+        Assert.Same(read, await service.GetAsync());
+    }
+
+    [Fact]
+    public async Task SeesASaveMadeThroughTheSameService()
+    {
+        var service = CreateService();
+
+        await service.SaveAsync(service.Get() with { InterfaceScale = 175 });
+
+        Assert.Equal(175, service.Get().InterfaceScale);
+    }
 }

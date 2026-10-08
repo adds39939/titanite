@@ -27,8 +27,28 @@ public sealed class AppSettingsService(
         {
             return _settings;
         }
-        
-        
+
+        _lock.Wait();
+
+        try
+        {
+            if (_settings is not null)
+            {
+                return _settings;
+            }
+
+            return _settings = File.Exists(storage.SettingsFile)
+                ? Parse(File.ReadAllText(storage.SettingsFile))
+                : new AppSettings();
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException)
+        {
+            return _settings = Defaults(e);
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     public async Task<AppSettings> GetAsync(CancellationToken cancellationToken = default)
@@ -54,14 +74,11 @@ public sealed class AppSettingsService(
 
             var json = await File.ReadAllTextAsync(storage.SettingsFile, cancellationToken).ConfigureAwait(false);
 
-            return _settings = (JsonSerializer.Deserialize<AppSettings>(json, SerializerOptions) ?? new AppSettings())
-                .Sanitised();
+            return _settings = Parse(json);
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or JsonException)
         {
-            logger.LogWarning(e, "Could not read settings at {SettingsPath}; using the defaults.", storage.SettingsFile);
-
-            return _settings = new AppSettings();
+            return _settings = Defaults(e);
         }
         finally
         {
@@ -96,5 +113,18 @@ public sealed class AppSettingsService(
         {
             _lock.Release();
         }
+    }
+
+    private static AppSettings Parse(string json) =>
+        (JsonSerializer.Deserialize<AppSettings>(json, SerializerOptions) ?? new AppSettings()).Sanitised();
+
+    private AppSettings Defaults(Exception exception)
+    {
+        logger.LogWarning(
+            exception,
+            "Could not read settings at {SettingsPath}; using the defaults.",
+            storage.SettingsFile);
+
+        return new AppSettings();
     }
 }
