@@ -101,7 +101,9 @@
                 @if (ShowsExtras && selected.Is(SettingCategoryIds.Cpu))
                 {
                     <CpuAffinityEditor Value="@Options.CpuAffinity"
-                                       ValueChanged="ApplyCpuAffinity"/>
+                                       ValueChanged="ApplyCpuAffinity"
+                                       Method="@AffinityMethod"
+                                       MethodChanged="ApplyAffinityMethod"/>
 
                     <CollapsibleGroup Name="Scheduling"
                                       SetCount="@(Options.HasWrapperCommand(GameModeCommand) ? 1 : 0)">

@@ -1,3 +1,4 @@
+using Titanite.Core.Cpu;
 using Titanite.Core.Launch;
 
 namespace Titanite.Core.Tests.Launch;
@@ -19,7 +20,15 @@ public class CommandPlaceholderTests
 
     [Fact]
     public void PinningAnEmptyConfigurationAddsThePlaceholder() =>
-        Assert.Equal("taskset -c 0-7 %command%", new LaunchOptions().WithCpuAffinity("0-7").Format());
+        Assert.Equal(
+            "taskset -c 0-7 %command%",
+            new LaunchOptions().WithCpuAffinity("0-7", CpuAffinityMethod.Taskset).Format());
+
+    [Fact]
+    public void PinningAnEmptyConfigurationThroughWineAddsThePlaceholder() =>
+        Assert.Equal(
+            "WINE_CPU_TOPOLOGY=2:0,1 %command%",
+            new LaunchOptions().WithCpuAffinity("0-1", CpuAffinityMethod.WineCpuTopology).Format());
 
     [Fact]
     public void BuildingUpFromNothingStaysWellFormed()
@@ -28,7 +37,7 @@ public class CommandPlaceholderTests
             .SetEnvironment("PROTON_ENABLE_NVAPI", "1")
             .SetEnvironment("PROTON_ENABLE_NGX_UPDATER", "1")
             .WithWrapperCommand("mangohud", true)
-            .WithCpuAffinity("0-7,16-23");
+            .WithCpuAffinity("0-7,16-23", CpuAffinityMethod.Taskset);
 
         Assert.Equal(
             "PROTON_ENABLE_NVAPI=1 PROTON_ENABLE_NGX_UPDATER=1 mangohud taskset -c 0-7,16-23 %command%",

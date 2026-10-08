@@ -28,3 +28,8 @@ groups:
         label: Reported core count
         description: How many cores the game is told it has. 8, or 8:0,1,2,3 to name them.
         placeholder: "8"
+
+      - variable: WINE_CPU_TOPOLOGY
+        label: CPU affinity
+        description: The threads Wine runs the game on, as a count then the list. Reported core count replaces it.
+        placeholder: "4:0,1,2,3"

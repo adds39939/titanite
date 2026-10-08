@@ -57,7 +57,7 @@ public class LaunchOptionsWrapperTests
     [Fact]
     public void ChangingTheMaskLeavesTheRestOfTheChainAlone()
     {
-        var edited = LaunchOptions.Parse(Overwatch).WithCpuAffinity("8-15,24-31");
+        var edited = LaunchOptions.Parse(Overwatch).WithCpuAffinity("8-15,24-31", CpuAffinityMethod.Taskset);
 
         Assert.Equal(
             "PROTON_ENABLE_HDR=1 /home/adam/bin/ow-dlss mangohud taskset -c 8-15,24-31 %command%",
@@ -67,7 +67,7 @@ public class LaunchOptionsWrapperTests
     [Fact]
     public void ClearingTheMaskRemovesTasksetEntirely()
     {
-        var edited = LaunchOptions.Parse(Overwatch).WithCpuAffinity(null);
+        var edited = LaunchOptions.Parse(Overwatch).WithCpuAffinity(null, CpuAffinityMethod.Taskset);
 
         Assert.Equal("PROTON_ENABLE_HDR=1 /home/adam/bin/ow-dlss mangohud %command%", edited.Format());
     }
@@ -75,7 +75,7 @@ public class LaunchOptionsWrapperTests
     [Fact]
     public void PinningAnUnpinnedGamePutsTasksetLast()
     {
-        var edited = LaunchOptions.Parse("mangohud %command%").WithCpuAffinity("0-7");
+        var edited = LaunchOptions.Parse("mangohud %command%").WithCpuAffinity("0-7", CpuAffinityMethod.Taskset);
 
         Assert.Equal("mangohud taskset -c 0-7 %command%", edited.Format());
     }
@@ -124,7 +124,7 @@ public class LaunchOptionsWrapperTests
     {
         var edited = LaunchOptions
             .Parse(Overwatch)
-            .WithCpuAffinity("0-3")
+            .WithCpuAffinity("0-3", CpuAffinityMethod.Taskset)
             .WithWrapperCommand("gamemoderun", true);
 
         Assert.Contains("/home/adam/bin/ow-dlss", edited.Wrapper);
@@ -132,4 +132,117 @@ public class LaunchOptionsWrapperTests
             "PROTON_ENABLE_HDR=1 gamemoderun /home/adam/bin/ow-dlss mangohud taskset -c 0-3 %command%",
             edited.Format());
     }
+}
+
+public class LaunchOptionsWineCpuTopologyTests
+{
+    private const string Pinned = "PROTON_ENABLE_HDR=1 WINE_CPU_TOPOLOGY=4:0,1,2,3 mangohud %command%";
+
+    [Fact]
+    public void WritesTheThreadCountAndEveryThreadItMapsTo()
+    {
+        var edited = LaunchOptions.Parse("mangohud %command%")
+            .WithCpuAffinity("0-3,8", CpuAffinityMethod.WineCpuTopology);
+
+        Assert.Equal("WINE_CPU_TOPOLOGY=5:0,1,2,3,8 mangohud %command%", edited.Format());
+    }
+
+    [Fact]
+    public void ReadsTheVariableBackAsAMask()
+    {
+        var options = LaunchOptions.Parse(Pinned);
+
+        Assert.Equal("0-3", options.CpuAffinity);
+        Assert.Equal(CpuAffinityMethod.WineCpuTopology, options.AffinityMethod);
+    }
+
+    [Fact]
+    public void ReadsTheSimultaneousMultithreadingSpelling() =>
+        Assert.Equal("0-7", LaunchOptions.Parse("WINE_CPU_TOPOLOGY=4s:0,1,2,3,4,5,6,7 %command%").CpuAffinity);
+
+    [Fact]
+    public void ReportsNoAffinityForACountWithoutThreads()
+    {
+        var options = LaunchOptions.Parse("WINE_CPU_TOPOLOGY=8 %command%");
+
+        Assert.Null(options.CpuAffinity);
+        Assert.Null(options.AffinityMethod);
+    }
+
+    [Fact]
+    public void ReportsNoMethodWhenTheGameIsNotPinned() =>
+        Assert.Null(LaunchOptions.Parse("mangohud %command%").AffinityMethod);
+
+    [Fact]
+    public void ReportsTasksetWhenTheGameIsPinnedWithIt() =>
+        Assert.Equal(
+            CpuAffinityMethod.Taskset,
+            LaunchOptions.Parse("taskset -c 0-3 %command%").AffinityMethod);
+
+    [Fact]
+    public void ChangingTheMaskKeepsTheVariableWhereItWas()
+    {
+        var edited = LaunchOptions.Parse(Pinned).WithCpuAffinity("8-9", CpuAffinityMethod.WineCpuTopology);
+
+        Assert.Equal("PROTON_ENABLE_HDR=1 WINE_CPU_TOPOLOGY=2:8,9 mangohud %command%", edited.Format());
+    }
+
+    [Fact]
+    public void ClearingTheMaskRemovesTheVariable()
+    {
+        var edited = LaunchOptions.Parse(Pinned).WithCpuAffinity(null, CpuAffinityMethod.WineCpuTopology);
+
+        Assert.Equal("PROTON_ENABLE_HDR=1 mangohud %command%", edited.Format());
+    }
+
+    [Fact]
+    public void ClearingTheMaskRemovesEitherMethod()
+    {
+        var edited = LaunchOptions.Parse("WINE_CPU_TOPOLOGY=2:0,1 taskset -c 0-3 %command%")
+            .WithCpuAffinity(null, CpuAffinityMethod.WineCpuTopology);
+
+        Assert.Equal("%command%", edited.Format());
+    }
+
+    [Fact]
+    public void SwitchingToTasksetRemovesTheVariable()
+    {
+        var edited = LaunchOptions.Parse(Pinned).WithCpuAffinity("0-3", CpuAffinityMethod.Taskset);
+
+        Assert.Equal("PROTON_ENABLE_HDR=1 mangohud taskset -c 0-3 %command%", edited.Format());
+        Assert.Equal(CpuAffinityMethod.Taskset, edited.AffinityMethod);
+    }
+
+    [Fact]
+    public void SwitchingToWineRemovesTaskset()
+    {
+        var edited = LaunchOptions.Parse("mangohud taskset -c 0-3 %command%")
+            .WithCpuAffinity("0-3", CpuAffinityMethod.WineCpuTopology);
+
+        Assert.Equal("WINE_CPU_TOPOLOGY=4:0,1,2,3 mangohud %command%", edited.Format());
+        Assert.Equal(CpuAffinityMethod.WineCpuTopology, edited.AffinityMethod);
+    }
+
+    [Fact]
+    public void TreatsAMaskWithNoThreadsAsUnpinned() =>
+        Assert.Equal(
+            "mangohud %command%",
+            LaunchOptions.Parse(Pinned)
+                .RemoveEnvironment("PROTON_ENABLE_HDR")
+                .WithCpuAffinity("banana", CpuAffinityMethod.WineCpuTopology)
+                .Format());
+
+    [Fact]
+    public void WarnsWhenTheReportedCoreCountReplacesTheAffinity()
+    {
+        var warnings = LaunchOptionsValidator.Validate(
+            LaunchOptions.Parse("PROTON_CPU_TOPOLOGY=8 WINE_CPU_TOPOLOGY=4:0,1,2,3 %command%"));
+
+        Assert.Contains(warnings, warning => warning.Contains("WINE_CPU_TOPOLOGY", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void SaysNothingWhenTheReportedCoreCountMeetsTaskset() =>
+        Assert.Empty(LaunchOptionsValidator.Validate(
+            LaunchOptions.Parse("PROTON_CPU_TOPOLOGY=8 taskset -c 0-3 %command%")));
 }

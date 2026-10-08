@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Titanite.Abstractions.Settings;
+using Titanite.Core.Cpu;
 using Titanite.Core.Launch;
 using Titanite.Core.Proton;
 using Titanite.Core.Games;
@@ -18,6 +19,7 @@ public partial class LaunchOptionsEditor : ComponentBase
 
     private EditorView? _view;
     private LaunchOptions? _formattedOptions;
+    private CpuAffinityMethod _affinityMethod = CpuAffinityMethod.WineCpuTopology;
 
     [Inject]
     private SettingCatalog Catalog { get; set; } = null!;
@@ -115,6 +117,8 @@ public partial class LaunchOptionsEditor : ComponentBase
     private bool IsSet(SettingDefinition definition) =>
         Options.FindEnvironment(definition.Variable) is not null;
 
+    private CpuAffinityMethod AffinityMethod => Options.AffinityMethod ?? _affinityMethod;
+
     protected override async Task OnInitializedAsync()
     {
         SelectedCategory = VisibleCategories.FirstOrDefault();
@@ -189,7 +193,11 @@ public partial class LaunchOptionsEditor : ComponentBase
         DefinitionsIn(category).Where(IsVisible).Where(_search.Matches);
 
     private IReadOnlyList<SettingGroup> ListedGroupsIn(SettingCategory category) =>
-        SettingCatalog.Group(ListedSettingsIn(category));
+        SettingCatalog.Group(ListedSettingsIn(category).Where(definition => !IsEditedByExtras(definition)));
+
+    private bool IsEditedByExtras(SettingDefinition definition) =>
+        ShowsExtras &&
+        string.Equals(definition.Variable, LaunchOptions.WineCpuTopologyVariable, StringComparison.Ordinal);
 
     private bool IsVisible(SettingDefinition definition) =>
         Options.FindEnvironment(definition.Variable) is not null ||
@@ -305,7 +313,21 @@ public partial class LaunchOptionsEditor : ComponentBase
     private Task ApplyWrapperCommand(string command, bool present) =>
         Publish(Options.WithWrapperCommand(command, present));
 
-    private Task ApplyCpuAffinity(string? mask) => Publish(Options.WithCpuAffinity(mask));
+    private Task ApplyCpuAffinity(string? mask)
+    {
+        _affinityMethod = AffinityMethod;
+
+        return Publish(Options.WithCpuAffinity(mask, _affinityMethod));
+    }
+
+    private Task ApplyAffinityMethod(CpuAffinityMethod method)
+    {
+        _affinityMethod = method;
+
+        return Options.CpuAffinity is { } mask
+            ? Publish(Options.WithCpuAffinity(mask, method))
+            : Task.CompletedTask;
+    }
 
     private Task RemoveCustomVariable(string name) => Publish(Options.RemoveEnvironment(name));
 

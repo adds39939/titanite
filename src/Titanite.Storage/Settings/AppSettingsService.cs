@@ -21,6 +21,16 @@ public sealed class AppSettingsService(
 
     private AppSettings? _settings;
 
+    public AppSettings Get()
+    {
+        if (_settings is not null)
+        {
+            return _settings;
+        }
+        
+        
+    }
+
     public async Task<AppSettings> GetAsync(CancellationToken cancellationToken = default)
     {
         if (_settings is not null)

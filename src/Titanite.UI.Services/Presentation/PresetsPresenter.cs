@@ -39,6 +39,8 @@ public sealed class PresetsPresenter(IPresetService presets, ICompatibilityTools
 
     public bool CanDelete => Selected.CanBeRemoved;
 
+    public bool CanRename => !Selected.IsGlobal;
+
     public ProtonBuild? EffectiveBuild =>
         CompatTool.Length > 0 ? ProtonBuilds.FindBuild(CompatTool) : null;
 
@@ -144,7 +146,7 @@ public sealed class PresetsPresenter(IPresetService presets, ICompatibilityTools
 
     public async Task RenameAsync(string name, CancellationToken cancellationToken = default)
     {
-        if (!CanDelete || PresetName.Clean(name) is not { Length: > 0 })
+        if (!CanRename || PresetName.Clean(name) is not { Length: > 0 })
         {
             return;
         }
@@ -152,12 +154,16 @@ public sealed class PresetsPresenter(IPresetService presets, ICompatibilityTools
         IsSaving = true;
         Status = null;
 
+        var previous = Selected.Name;
+
         try
         {
             var renamed = await presets.RenameAsync(SelectedId, name, cancellationToken);
 
             Presets = await presets.GetAllAsync(cancellationToken);
             SelectedId = renamed.Id;
+
+            Status = StatusMessage.Success($"Renamed {previous} to {renamed.Name}.");
         }
         catch (Exception e)
         {

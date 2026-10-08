@@ -47,6 +47,16 @@ public sealed class PresetsPresenterTests
                 return created;
             });
 
+        A.CallTo(() => _presets.RenameAsync(A<string>._, A<string>._, A<CancellationToken>._))
+            .ReturnsLazily((string id, string name, CancellationToken _) =>
+            {
+                var renamed = _stored.First(preset => PresetId.Same(preset.Id, id)) with { Name = name };
+
+                Replace(renamed);
+
+                return renamed;
+            });
+
         A.CallTo(() => _presets.DeleteAsync(A<string>._, A<CancellationToken>._))
             .Invokes((string id, CancellationToken _) =>
                 _stored.RemoveAll(preset => PresetId.Same(preset.Id, id)));
@@ -113,6 +123,36 @@ public sealed class PresetsPresenterTests
         Assert.Equal("Handheld", presenter.Selected.Name);
         Assert.True(presenter.Editing.IsEmpty);
         Assert.Equal(StatusTone.Success, presenter.Status?.Tone);
+    }
+
+    [Fact]
+    public async Task WillNotOfferToRenameGlobal()
+    {
+        var presenter = await LoadedAsync();
+
+        await presenter.RenameAsync("Everything");
+
+        Assert.False(presenter.CanRename);
+        A.CallTo(() => _presets.RenameAsync(A<string>._, A<string>._, A<CancellationToken>._))
+            .MustNotHaveHappened();
+    }
+
+    [Fact]
+    public async Task RenamesThePresetAndKeepsItOpen()
+    {
+        var presenter = await LoadedAsync();
+
+        await presenter.CreateAsync("Handheld");
+        presenter.Edit(LaunchOptions.Parse("PROTON_LOG=1 %command%"));
+
+        await presenter.RenameAsync("Docked");
+
+        Assert.True(presenter.CanRename);
+        Assert.Equal("Docked", presenter.Selected.Name);
+        Assert.Contains(presenter.Presets, preset => preset.Name == "Docked");
+        Assert.True(presenter.HasChanges);
+        Assert.Equal(StatusTone.Success, presenter.Status?.Tone);
+        Assert.Equal("Renamed Handheld to Docked.", presenter.Status?.Text);
     }
 
     [Fact]

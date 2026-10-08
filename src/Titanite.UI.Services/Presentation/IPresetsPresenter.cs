@@ -32,6 +32,8 @@ public interface IPresetsPresenter
 
     bool CanDelete { get; }
 
+    bool CanRename { get; }
+
     bool CompatToolChanged { get; }
 
     bool HasChanges { get; }

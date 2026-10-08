@@ -46,9 +46,35 @@ else
     </CollapsibleGroup>
 }
 
+<CollapsibleGroup Name="Method">
+    <div class="methods" role="radiogroup" aria-label="How the affinity is applied">
+        @foreach (var option in Methods)
+        {
+            <button type="button"
+                    class="method @(option.Method == Method ? "is-active" : string.Empty)"
+                    role="radio"
+                    aria-checked="@(option.Method == Method ? "true" : "false")"
+                    @key="option.Method"
+                    @onclick="() => ChooseMethod(option.Method)">
+                <span class="method-label">@option.Label</span>
+                <span class="method-detail">@option.Detail</span>
+                <code class="method-token">@option.Token</code>
+            </button>
+        }
+    </div>
+</CollapsibleGroup>
+
 <CollapsibleGroup Name="Mask">
     <p class="group-note">
-        Passed to <code>taskset -c</code>. Clearing it removes the pinning entirely.
+        @if (UsesTaskset)
+        {
+            <text>Passed to <code>taskset -c</code>.</text>
+        }
+        else
+        {
+            <text>Written to <code>@LaunchOptions.WineCpuTopologyVariable</code> as a thread count and list.</text>
+        }
+        Clearing it removes the pinning entirely.
     </p>
 
     <input class="mask"

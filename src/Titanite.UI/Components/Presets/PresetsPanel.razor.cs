@@ -15,6 +15,8 @@ public partial class PresetsPanel : LauncherAvailabilityView
 
     private bool IsNaming { get; set; }
 
+    private bool IsRenaming { get; set; }
+
     private bool ResetPending { get; set; }
 
     private bool DeletePending { get; set; }
@@ -104,6 +106,21 @@ public partial class PresetsPanel : LauncherAvailabilityView
         IsNaming = false;
 
         await Presenter.CreateAsync(name);
+    }
+
+    private void AskToRename()
+    {
+        Settle();
+        IsRenaming = true;
+    }
+
+    private void CancelRename() => IsRenaming = false;
+
+    private async Task RenameAsync(string name)
+    {
+        IsRenaming = false;
+
+        await Presenter.RenameAsync(name);
     }
 
     private void AskToSave()

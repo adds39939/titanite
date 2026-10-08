@@ -1,11 +1,26 @@
 using Microsoft.AspNetCore.Components;
 using Titanite.Abstractions.Cpu;
 using Titanite.Core.Cpu;
+using Titanite.Core.Launch;
 
 namespace Titanite.UI.Components.SettingControls;
 
 public partial class CpuAffinityEditor : ComponentBase
 {
+    private static readonly IReadOnlyList<MethodOption> Methods =
+    [
+        new(
+            CpuAffinityMethod.WineCpuTopology,
+            "Wine topology",
+            "Wine tells the game it has only these threads and keeps it on them.",
+            LaunchOptions.WineCpuTopologyVariable),
+        new(
+            CpuAffinityMethod.Taskset,
+            "taskset",
+            "Pins the whole launch chain, Proton and any wrappers included.",
+            "taskset -c")
+    ];
+
     [Inject]
     private ICpuTopologyService TopologyService { get; set; } = null!;
 
@@ -14,6 +29,12 @@ public partial class CpuAffinityEditor : ComponentBase
 
     [Parameter]
     public EventCallback<string?> ValueChanged { get; set; }
+
+    [Parameter]
+    public CpuAffinityMethod Method { get; set; }
+
+    [Parameter]
+    public EventCallback<CpuAffinityMethod> MethodChanged { get; set; }
 
     private CpuTopology Topology => TopologyService.Get();
 
@@ -24,6 +45,8 @@ public partial class CpuAffinityEditor : ComponentBase
     private HashSet<int> Selected { get; set; } = [];
 
     private IReadOnlyList<AffinityPreset> Presets => _presets ??= BuildPresets();
+
+    private bool UsesTaskset => Method == CpuAffinityMethod.Taskset;
 
     protected override void OnParametersSet()
     {
@@ -90,6 +113,9 @@ public partial class CpuAffinityEditor : ComponentBase
             : CpuAffinityMask.Format(threads));
     }
 
+    private Task ChooseMethod(CpuAffinityMethod method) =>
+        method == Method ? Task.CompletedTask : MethodChanged.InvokeAsync(method);
+
     private Task OnMaskChanged(ChangeEventArgs args)
     {
         var mask = args.Value?.ToString();
@@ -101,4 +127,6 @@ public partial class CpuAffinityEditor : ComponentBase
     {
         public IReadOnlyList<int> Threads { get; } = CpuAffinityMask.Parse(Mask);
     }
+
+    private sealed record MethodOption(CpuAffinityMethod Method, string Label, string Detail, string Token);
 }

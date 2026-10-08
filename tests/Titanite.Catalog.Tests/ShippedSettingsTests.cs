@@ -60,6 +60,10 @@ public class ShippedSettingsTests
         Assert.NotNull(Catalog.FindCategory(id));
 
     [Fact]
+    public void PlacesTheWineAffinityVariableInTheCpuSection() =>
+        Assert.Equal(SettingCategoryIds.Cpu, Catalog.Find(LaunchOptions.WineCpuTopologyVariable)?.Category.Id);
+
+    [Fact]
     public void OrdersSectionsWithNvidiaFirst() =>
         Assert.Equal("nvidia", Catalog.Categories[0].Id);
 

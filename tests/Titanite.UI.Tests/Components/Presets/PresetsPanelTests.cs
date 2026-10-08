@@ -43,6 +43,16 @@ public sealed class PresetsPanelTests : BunitContext
                 return created;
             });
 
+        A.CallTo(() => _presets.RenameAsync(A<string>._, A<string>._, A<CancellationToken>._))
+            .ReturnsLazily((string id, string name, CancellationToken _) =>
+            {
+                var index = _stored.FindIndex(preset => PresetId.Same(preset.Id, id));
+
+                _stored[index] = _stored[index] with { Name = name };
+
+                return _stored[index];
+            });
+
         A.CallTo(() => _compatibilityTools.GetCatalogueAsync(A<CancellationToken>._))
             .Returns(ProtonCatalogue.Empty);
 
@@ -129,6 +139,56 @@ public sealed class PresetsPanelTests : BunitContext
         Assert.True(panel.FindAll(".actions button")[1].HasAttribute("disabled"));
 
         panel.Find(".name").Input("   ");
+
+        Assert.True(panel.FindAll(".actions button")[1].HasAttribute("disabled"));
+    }
+
+    [Fact]
+    public void WillNotOfferToRenameGlobal()
+    {
+        var panel = Render<PresetsPanel>();
+
+        Assert.True(Rename(panel).HasAttribute("disabled"));
+    }
+
+    [Fact]
+    public void RenamesAPresetFromTheDialog()
+    {
+        _stored.Add(new Preset { Id = "a", Name = "Anticheat" });
+
+        var panel = Render<PresetsPanel>();
+
+        panel.Find(".presets-actions .dropdown > button").Click();
+        panel.FindAll(".presets-actions .item")[1].Click();
+        Rename(panel).Click();
+
+        Assert.Equal("Anticheat", panel.Find(".name").GetAttribute("value"));
+
+        panel.Find(".name").Input("Docked");
+        panel.FindAll(".actions button")[1].Click();
+
+        A.CallTo(() => _presets.RenameAsync("a", "Docked", A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+
+        Assert.Empty(panel.FindAll(".backdrop"));
+        Assert.Equal("Docked", panel.Find(".presets-actions .dropdown > button").TextContent.Trim());
+        Assert.Equal("Renamed Anticheat to Docked.", panel.Find(".footer-status").TextContent.Trim());
+    }
+
+    [Fact]
+    public void WillNotRenameToTheSameOrNoName()
+    {
+        _stored.Add(new Preset { Id = "a", Name = "Anticheat" });
+
+        var panel = Render<PresetsPanel>();
+
+        panel.Find(".presets-actions .dropdown > button").Click();
+        panel.FindAll(".presets-actions .item")[1].Click();
+        Rename(panel).Click();
+
+        Assert.True(panel.FindAll(".actions button")[1].HasAttribute("disabled"));
+
+        panel.Find(".name").Input("  ");
 
         Assert.True(panel.FindAll(".actions button")[1].HasAttribute("disabled"));
     }
@@ -232,6 +292,9 @@ public sealed class PresetsPanelTests : BunitContext
     private static string Collapsed(string text) =>
         string.Join(' ', text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
 
-    private static AngleSharp.Dom.IElement Remove(IRenderedComponent<PresetsPanel> panel) =>
+    private static AngleSharp.Dom.IElement Rename(IRenderedComponent<PresetsPanel> panel) =>
         panel.FindAll(".presets-actions button")[2];
+
+    private static AngleSharp.Dom.IElement Remove(IRenderedComponent<PresetsPanel> panel) =>
+        panel.FindAll(".presets-actions button")[3];
 }

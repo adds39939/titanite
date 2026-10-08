@@ -6,13 +6,19 @@
     max-width: 66ch;
 }
 
-.presets {
+.presets,
+.methods {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 8px;
 }
 
-.preset {
+.methods {
+    margin-top: 10px;
+}
+
+.preset,
+.method {
     display: flex;
     flex-direction: column;
     gap: 3px;
@@ -27,26 +33,31 @@
     transition: border-color 120ms ease, background 120ms ease;
 }
 
-.preset:hover {
+.preset:hover,
+.method:hover {
     border-color: var(--accent);
 }
 
-.preset.is-active {
+.preset.is-active,
+.method.is-active {
     border-color: var(--accent);
     background: var(--accent-soft);
 }
 
-.preset-label {
+.preset-label,
+.method-label {
     font-size: 13px;
     font-weight: var(--font-weight-strong);
 }
 
-.preset-detail {
+.preset-detail,
+.method-detail {
     color: var(--text-muted);
     font-size: 11px;
 }
 
-.preset-mask {
+.preset-mask,
+.method-token {
     color: var(--text-muted);
     font-family: var(--font-mono);
     font-size: 11px;

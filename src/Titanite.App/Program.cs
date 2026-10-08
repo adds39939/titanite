@@ -14,7 +14,7 @@ namespace Titanite.App;
 internal class Program
 {
     [STAThread]
-    private static void Main(string[] args)
+    private async Task Main(string[] args)
     {
         WebKitEnvironment.EnsureOsIsLinux();
         WebKitEnvironment.DisableNvidiaExplicitSync();

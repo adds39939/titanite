@@ -24,6 +24,10 @@
 
             <Button Disabled="@Presenter.IsSaving" OnClick="AskToCreate">New preset</Button>
 
+            <Button Disabled="@(Presenter.IsSaving || !Presenter.CanRename)" OnClick="AskToRename">
+                Rename
+            </Button>
+
             <Button Variant="@(DeletePending ? ButtonVariant.Danger : ButtonVariant.Destructive)"
                     Disabled="@(Presenter.IsSaving || !Presenter.CanDelete)"
                     OnClick="DeleteAsync">
@@ -105,7 +109,21 @@
 
 @if (IsNaming)
 {
-    <NewPresetDialog OnCreate="CreateAsync" OnCancel="CancelCreate"/>
+    <PresetNameDialog Title="New preset"
+                      Note="A preset is a set of launch options and a Proton build that any number of games can take on at once."
+                      ConfirmLabel="Create"
+                      OnConfirm="CreateAsync"
+                      OnCancel="CancelCreate"/>
+}
+
+@if (IsRenaming)
+{
+    <PresetNameDialog Title="Rename preset"
+                      Note="The games using this preset keep using it under its new name."
+                      ConfirmLabel="Rename"
+                      InitialName="@Presenter.Selected.Name"
+                      OnConfirm="RenameAsync"
+                      OnCancel="CancelRename"/>
 }
 
 @if (IsConfirmingSave)

@@ -12,6 +12,8 @@ public static class LaunchOptionsValidator
 
     private const string MangoAppFlag = "--mangoapp";
 
+    private const string ProtonCpuTopologyVariable = "PROTON_CPU_TOPOLOGY";
+
     private static readonly string[] HdrFlags = ["--hdr-enabled"];
 
     private static readonly string[] InverseToneMappingFlags = ["--hdr-itm-enabled", "--hdr-itm-enable"];
@@ -64,6 +66,13 @@ public static class LaunchOptionsValidator
             warnings.Add(
                 "Both esync and fsync are disabled. Expect noticeably worse performance unless a " +
                 "specific game needs it.");
+        }
+
+        if (IsSet(options, ProtonCpuTopologyVariable) && IsSet(options, LaunchOptions.WineCpuTopologyVariable))
+        {
+            warnings.Add(
+                "The reported core count is set, and Proton copies it over WINE_CPU_TOPOLOGY, so the " +
+                "CPU affinity is lost. Clear one of them, or apply the affinity with taskset instead.");
         }
 
         return warnings;
